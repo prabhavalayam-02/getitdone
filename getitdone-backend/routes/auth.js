@@ -1,31 +1,39 @@
 const express = require("express");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
 const router = express.Router();
 
-// ===== Signup =====
+/**
+ * @route   POST /api/auth/signup
+ * @desc    Register a new user or helper
+ */
 router.post("/signup", async (req, res) => {
+  const { name, email, password, phone, address, role } = req.body;
+
   try {
-    const { name, email, password, role } = req.body;
-
-    // Check if user exists
+    // 1. Check if user already exists
     let user = await User.findOne({ email });
-    if (user) return res.status(400).json({ msg: "User already exists" });
+    if (user) {
+      return res.status(400).json({ msg: "User already exists" });
+    }
 
-    // Create new user
+    // 2. Create new user
     user = new User({
       name,
       email,
-      password,
-      role: role || "user", // default user
+      password, // will be hashed in UserSchema.pre("save")
+      phone,
+      address,
+      role,
     });
 
     await user.save();
 
-    // Generate JWT
+    // 3. Return JWT
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { id: user._id, role: user.role, helperStatus: user.helperStatus },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -37,30 +45,38 @@ router.post("/signup", async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        isVerifiedHelper: user.isVerifiedHelper,
+        helperStatus: user.helperStatus,
       },
     });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).json({ msg: "Server error" });
   }
 });
 
-// ===== Login =====
+/**
+ * @route   POST /api/auth/login
+ * @desc    Authenticate user & return token
+ */
 router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
   try {
-    const { email, password } = req.body;
-
-    // Check user
+    // 1. Find user
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ msg: "Invalid credentials" });
+    if (!user) {
+      return res.status(400).json({ msg: "Invalid credentials" });
+    }
 
-    const isMatch = await user.matchPassword(password);
-    if (!isMatch) return res.status(400).json({ msg: "Invalid credentials" });
+    // 2. Compare password with bcrypt
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ msg: "Invalid credentials" });
+    }
 
-    // Generate JWT
+    // 3. Create JWT
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { id: user._id, role: user.role, helperStatus: user.helperStatus },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -72,12 +88,12 @@ router.post("/login", async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        isVerifiedHelper: user.isVerifiedHelper,
+        helperStatus: user.helperStatus,
       },
     });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).json({ msg: "Server error" });
   }
 });
 

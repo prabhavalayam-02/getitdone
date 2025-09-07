@@ -3,36 +3,35 @@ const bcrypt = require("bcryptjs");
 
 const UserSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-    },
-    password: {
-      type: String,
-      required: true,
-      minlength: 6,
-    },
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    phone: { type: String, required: true },
+    address: { type: String },
+
     role: {
       type: String,
       enum: ["user", "helper", "admin"],
       default: "user",
     },
-    isVerifiedHelper: {
-      type: Boolean,
-      default: false,
+
+    // Helper-specific fields
+    helperStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
     },
+    kycDocs: [
+      {
+        type: { type: String },
+        url: { type: String },
+      },
+    ],
   },
   { timestamps: true }
 );
 
-// Hash password before saving
+// hash password
 UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   const salt = await bcrypt.genSalt(10);
@@ -40,7 +39,7 @@ UserSchema.pre("save", async function (next) {
   next();
 });
 
-// Compare password method
+// password compare
 UserSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };

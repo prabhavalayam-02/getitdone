@@ -1,27 +1,12 @@
-// models/Task.js
 const mongoose = require("mongoose");
 
-const taskSchema = new mongoose.Schema(
+const TaskSchema = new mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    category: {
+    serviceCategory: {
       type: String,
       required: true,
-      enum: ["Household", "Delivery", "Repair", "Other"], // can expand later
     },
     description: {
-      type: String,
-      required: true,
-    },
-    date: {
-      type: Date,
-      required: true,
-    },
-    time: {
       type: String,
       required: true,
     },
@@ -29,17 +14,59 @@ const taskSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    date: {
+      type: Date,
+      required: true,
+    },
     budget: {
       type: Number,
       required: true,
     },
+    attachments: [
+      {
+        type: String, // store file URLs
+      },
+    ],
+    contactInfo: {
+      phone: { type: String, required: true },
+      email: { type: String },
+    },
+
+    // relationships
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    acceptedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User", // this will be a helper
+    },
+
+    // task status
     status: {
       type: String,
-      enum: ["pending", "accepted", "in-progress", "completed", "cancelled"],
-      default: "pending",
+      enum: ["open", "accepted", "in-progress", "completed", "cancelled"],
+      default: "open",
     },
+
+    // log history of status changes
+    history: [
+      {
+        status: String,
+        changedAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Task", taskSchema);
+// middleware to track history
+TaskSchema.pre("save", function (next) {
+  if (this.isModified("status")) {
+    this.history.push({ status: this.status });
+  }
+  next();
+});
+
+module.exports = mongoose.model("Task", TaskSchema);
