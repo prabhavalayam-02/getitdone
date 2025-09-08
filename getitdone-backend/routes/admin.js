@@ -1,98 +1,36 @@
+// routes/admin.js
 const express = require("express");
+const auth = require("../middleware/auth");
 const User = require("../models/User");
-const authMiddleware = require("../middleware/auth");
 
 const router = express.Router();
 
 /**
- * @route   GET /api/admin/helpers
- * @desc    Get all helpers (filter by status if query provided)
- * @access  Admin
- * @example /api/admin/helpers?status=pending
+ * @route   GET /api/admin/helpers/pending
+ * @desc    Get all helpers waiting for approval (with KYC docs)
  */
-router.get("/helpers", authMiddleware, async (req, res) => {
+router.get("/helpers/pending", auth, async (req, res) => {
   try {
     if (req.user.role !== "admin") {
-      return res.status(403).json({ msg: "Access denied" });
+      return res.status(403).json({ msg: "Only admins can view pending helpers" });
     }
 
-    const { status } = req.query;
-    let filter = { role: "helper" };
+    const helpers = await User.find({ role: "helper", helperStatus: "pending" }).select(
+      "-password"
+    );
 
-    if (status) {
-      filter.helperStatus = status.toLowerCase(); // ✅ normalize
-    }
-
-    const helpers = await User.find(filter);
     res.json(helpers);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ msg: "Server error" });
-  }
-});
-
-/**
- * @route   PATCH /api/admin/approve/:id
- * @desc    Approve a helper
- * @access  Admin
- */
-router.patch("/approve/:id", authMiddleware, async (req, res) => {
-  try {
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ msg: "Access denied" });
-    }
-
-    const helper = await User.findById(req.params.id);
-    if (!helper) return res.status(404).json({ msg: "Helper not found" });
-
-    if (helper.role !== "helper") {
-      return res.status(400).json({ msg: "User is not a helper" });
-    }
-
-    helper.helperStatus = "approved";
-    await helper.save();
-
-    res.json({ msg: "Helper approved successfully", helper });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ msg: "Server error" });
-  }
-});
-
-/**
- * @route   PATCH /api/admin/reject/:id
- * @desc    Reject a helper
- * @access  Admin
- */
-router.patch("/reject/:id", authMiddleware, async (req, res) => {
-  try {
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ msg: "Access denied" });
-    }
-
-    const helper = await User.findById(req.params.id);
-    if (!helper) return res.status(404).json({ msg: "Helper not found" });
-
-    if (helper.role !== "helper") {
-      return res.status(400).json({ msg: "User is not a helper" });
-    }
-
-    helper.helperStatus = "rejected";
-    await helper.save();
-
-    res.json({ msg: "Helper rejected successfully", helper });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ msg: "Server error" });
+  } catch (error) {
+    console.error("Admin Pending Helpers Error:", error);
+    res.status(500).json({ msg: "Server error", error: error.message });
   }
 });
 
 /**
  * @route   PATCH /api/admin/helpers/:id/approve
- * @desc    Approve a helper
- * @access  Admin only
+ * @desc    Approve a helper account
  */
-router.patch("/helpers/:id/approve", authMiddleware, async (req, res) => {
+router.patch("/helpers/:id/approve", auth, async (req, res) => {
   try {
     if (req.user.role !== "admin") {
       return res.status(403).json({ msg: "Only admins can approve helpers" });
@@ -102,16 +40,44 @@ router.patch("/helpers/:id/approve", authMiddleware, async (req, res) => {
       req.params.id,
       { helperStatus: "approved" },
       { new: true }
-    );
+    ).select("-password");
 
-    if (!helper) return res.status(404).json({ msg: "Helper not found" });
+    if (!helper) {
+      return res.status(404).json({ msg: "Helper not found" });
+    }
 
     res.json({ msg: "Helper approved successfully", helper });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ msg: "Server error" });
+  } catch (error) {
+    console.error("Approve Helper Error:", error);
+    res.status(500).json({ msg: "Server error", error: error.message });
   }
 });
 
+/**
+ * @route   PATCH /api/admin/helpers/:id/reject
+ * @desc    Reject a helper account
+ */
+router.patch("/helpers/:id/reject", auth, async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ msg: "Only admins can reject helpers" });
+    }
+
+    const helper = await User.findByIdAndUpdate(
+      req.params.id,
+      { helperStatus: "rejected" },
+      { new: true }
+    ).select("-password");
+
+    if (!helper) {
+      return res.status(404).json({ msg: "Helper not found" });
+    }
+
+    res.json({ msg: "Helper rejected successfully", helper });
+  } catch (error) {
+    console.error("Reject Helper Error:", error);
+    res.status(500).json({ msg: "Server error", error: error.message });
+  }
+});
 
 module.exports = router;

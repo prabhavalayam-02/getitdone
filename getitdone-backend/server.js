@@ -9,6 +9,7 @@ const rateLimit = require("express-rate-limit");
 const authRoutes = require("./routes/auth");
 const taskRoutes = require("./routes/tasks");
 const adminRoutes = require("./routes/admin");
+const helperRoutes = require("./routes/helpers");
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/helpers", helperRoutes);
 // ===== Connect to MongoDB =====
 
 const path = require("path");
