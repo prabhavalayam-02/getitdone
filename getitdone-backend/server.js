@@ -20,13 +20,24 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // ===== CORS Configuration =====
 const whitelist = [
+  // Local development
   'http://localhost:5173',
   'http://localhost:3000',
   'http://localhost:8080',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:8080',
+  
+  // Production domains
+  'https://getitdone.amjad.biz',
+  'https://www.getitdone.amjad.biz',
+  
+  // Vercel URLs (keep as fallback)
   'https://getitdone-frontend-tau.vercel.app',
-  'https://getitdone.vercel.app' // if you set up a custom domain later
+  'https://getitdone.vercel.app',
+  
+  // For development with IP address (if needed)
+  /^https?:\/\/192\.168\.\d{1,3}\.\d{1,3}(?::\d+)?$/,  // Local network
+  /^https?:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}(?::\d+)?$/  // Local network
 ];
 
 const corsOptions = {
@@ -34,9 +45,18 @@ const corsOptions = {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    if (whitelist.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+    // Check if origin matches any pattern in whitelist
+    const isAllowed = whitelist.some(pattern => {
+      if (pattern instanceof RegExp) {
+        return pattern.test(origin);
+      }
+      return pattern === origin;
+    });
+    
+    if (isAllowed || process.env.NODE_ENV === 'development') {
       callback(null, true);
     } else {
+      console.log('CORS blocked for origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
