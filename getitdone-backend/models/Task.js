@@ -2,13 +2,20 @@ const mongoose = require("mongoose");
 
 const TaskSchema = new mongoose.Schema(
   {
-    serviceCategory: {
+    title: {
       type: String,
       required: true,
     },
     description: {
       type: String,
       required: true,
+    },
+    category: {
+      type: String,
+      required: true,
+    },
+    serviceCategory: {
+      type: String,
     },
     location: {
       type: String,
@@ -28,7 +35,7 @@ const TaskSchema = new mongoose.Schema(
       },
     ],
     contactInfo: {
-      phone: { type: String, required: true },
+      phone: { type: String },
       email: { type: String },
     },
 

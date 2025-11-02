@@ -14,7 +14,9 @@ const AvailableTasksPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [helperStatus] = useState<'approved' | 'pending'>('approved');
+  const [helperStatus] = useState<'approved' | 'pending'>(
+    (localStorage.getItem('helperStatus') as 'approved' | 'pending') || 'pending'
+  );
   const { toast } = useToast();
   const userName = localStorage.getItem('userName') || 'Helper';
 
@@ -72,8 +74,8 @@ const AvailableTasksPage: React.FC = () => {
     }
 
     try {
-      await tasksAPI.updateTaskStatus(taskId, 'accepted', userName);
-      setTasks(prev => prev.filter(task => task.id !== taskId));
+      await tasksAPI.acceptTask(taskId);
+      setTasks(prev => prev.filter(task => task._id !== taskId));
       toast({
         title: "Task accepted",
         description: "You have successfully accepted this task. Check 'My Tasks' to manage it.",
@@ -201,7 +203,7 @@ const AvailableTasksPage: React.FC = () => {
             <div className="grid gap-6">
               {filteredTasks.map((task) => (
                 <TaskCard
-                  key={task.id}
+                  key={task._id || task.id}
                   task={task}
                   userRole="helper"
                   onAccept={handleAcceptTask}

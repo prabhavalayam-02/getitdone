@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/enhanced-button';
 import { Input } from '@/components/ui/input';
@@ -9,30 +9,72 @@ import Navbar from '@/components/layout/Navbar';
 import FileUploader from '@/components/ui/FileUploader';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { User, Upload, Shield, RefreshCw, Save, Star, DollarSign, CheckCircle } from 'lucide-react';
+import { User, Upload, Shield, RefreshCw, Save, Star, DollarSign, CheckCircle, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const HelperProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Mock helper data - in real app this would come from API
   const [helperInfo, setHelperInfo] = useState({
-    name: localStorage.getItem('userName') || 'Jane Smith',
-    email: 'helper@test.com',
-    phone: '+1 234 567 8901',
-    address: '456 Oak Ave, City, State',
+    name: localStorage.getItem('userName') || '',
+    email: '',
+    phone: '',
+    address: '',
     role: 'helper',
-    helperStatus: 'approved', // 'pending', 'approved', 'rejected'
-    bio: 'Experienced handyman with 5+ years in home repairs and maintenance. Specialized in plumbing, electrical work, and general fixes.',
-    skills: ['Plumbing', 'Electrical', 'Painting', 'Furniture Assembly'],
-    rating: 4.8,
-    completedTasks: 23,
-    totalEarnings: 1250,
+    helperStatus: localStorage.getItem('helperStatus') || 'pending',
+    bio: '',
+    skills: [],
+    rating: 0,
+    completedTasks: 0,
+    totalEarnings: 0,
   });
   
   const [newKycFiles, setNewKycFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
+
+  useEffect(() => {
+    fetchHelperData();
+  }, []);
+
+  const fetchHelperData = async () => {
+    try {
+      const userId = localStorage.getItem('userId');
+      const token = localStorage.getItem('jwt');
+      
+      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setHelperInfo({
+          name: data.name || '',
+          email: data.email || '',
+          phone: data.phone || '',
+          address: data.address || '',
+          role: data.role || 'helper',
+          helperStatus: data.helperStatus || 'pending',
+          bio: data.bio || '',
+          skills: data.skills || [],
+          rating: data.rating || 0,
+          completedTasks: data.completedTasks || 0,
+          totalEarnings: data.totalEarnings || 0,
+        });
+        
+        // Update localStorage with latest status
+        localStorage.setItem('helperStatus', data.helperStatus);
+      }
+    } catch (error) {
+      console.error('Failed to fetch helper data:', error);
+    } finally {
+      setDataLoading(false);
+    }
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setHelperInfo(prev => ({ ...prev, [field]: value }));
@@ -72,22 +114,57 @@ const HelperProfilePage: React.FC = () => {
       return;
     }
 
+    // Check if status is pending
+    if (helperInfo.helperStatus === 'pending') {
+      toast({
+        variant: "destructive",
+        title: "Cannot update KYC",
+        description: "Your previous KYC submission is pending approval. Please wait for admin review.",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      // Simulate file upload
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const userId = localStorage.getItem('userId');
+      const token = localStorage.getItem('jwt');
       
-      toast({
-        title: "KYC documents updated",
-        description: "Your KYC documents have been updated successfully.",
+      const formData = new FormData();
+      newKycFiles.forEach((file) => {
+        formData.append('kycDocs', file);
       });
-      
-      setNewKycFiles([]);
-    } catch (error) {
+
+      const response = await fetch(`http://localhost:5000/api/helpers/${userId}/kyc`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        toast({
+          title: "KYC documents updated",
+          description: "Your KYC documents have been submitted for review.",
+        });
+        
+        setNewKycFiles([]);
+        
+        // Update status to pending after re-upload
+        setHelperInfo(prev => ({ ...prev, helperStatus: 'pending' }));
+        localStorage.setItem('helperStatus', 'pending');
+        
+        // Refresh data
+        await fetchHelperData();
+      } else {
+        const error = await response.json();
+        throw new Error(error.error || 'Upload failed');
+      }
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Upload failed",
-        description: "Failed to upload KYC documents. Please try again.",
+        description: error.message || "Failed to upload KYC documents. Please try again.",
       });
     } finally {
       setLoading(false);
@@ -318,11 +395,31 @@ const HelperProfilePage: React.FC = () => {
                     </div>
                   </div>
 
+                  {helperInfo.helperStatus === 'rejected' && (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        Your helper application has been rejected. Please upload new KYC documents below to reapply.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {helperInfo.helperStatus === 'pending' && (
+                    <Alert>
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        Your KYC documents are under review. You cannot update documents while approval is pending.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
                   <div className="space-y-4">
                     <div>
                       <Label>Update KYC Documents</Label>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Upload new identity documents if needed.
+                        {helperInfo.helperStatus === 'rejected' 
+                          ? 'Upload new KYC documents to reapply for helper status.' 
+                          : 'Upload new identity documents if needed.'}
                       </p>
                     </div>
                     

@@ -61,9 +61,7 @@ const Navbar: React.FC<NavbarProps> = ({ role }) => {
         ];
       case 'admin':
         return [
-          { name: 'Pending Helpers', path: '/admin/pending-helpers', icon: User },
-          { name: 'Approved Helpers', path: '/admin/approved-helpers', icon: Settings },
-          { name: 'All Tasks', path: '/admin/all-tasks', icon: List },
+          { name: 'Dashboard', path: '/admin', icon: Home },
         ];
       default:
         return [];

@@ -65,18 +65,31 @@ const SignupPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await authAPI.signup({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        address: formData.address,
-        password: formData.password,
-        role: formData.role,
-      });
+      // Create FormData to handle file uploads
+      const data = new FormData();
+      data.append('name', formData.name);
+      data.append('email', formData.email);
+      data.append('phone', formData.phone);
+      data.append('address', formData.address);
+      data.append('password', formData.password);
+      data.append('role', formData.role);
+      
+      // Add KYC files if helper role
+      if (formData.role === 'helper' && kycFiles.length > 0) {
+        kycFiles.forEach((file) => {
+          data.append('kycDocs', file);
+        });
+      }
+
+      const response = await authAPI.signupWithFiles(data);
       
       localStorage.setItem('jwt', response.token);
       localStorage.setItem('userRole', response.user.role);
       localStorage.setItem('userName', response.user.name);
+      localStorage.setItem('userId', response.user.id);
+      if (response.user.helperStatus) {
+        localStorage.setItem('helperStatus', response.user.helperStatus);
+      }
       
       toast({
         title: "Account created successfully",

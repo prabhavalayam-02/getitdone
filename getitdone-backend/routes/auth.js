@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const cloudinary = require("../config/cloudinary");
+const upload = require("../middleware/multer");
 
 const router = express.Router();
 
@@ -10,7 +11,7 @@ const router = express.Router();
  * @route   POST /api/auth/signup
  * @desc    Register a new user or helper
  */
-router.post("/signup", async (req, res) => {
+router.post("/signup", upload.array("kycDocs", 3), async (req, res) => {
   const { name, email, password, phone, address, role } = req.body;
 
   try {
@@ -20,7 +21,29 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({ msg: "User already exists" });
     }
 
-    // 2. Create new user
+    // 2. Handle KYC uploads for helpers
+    const kycDocs = [];
+    if (role === "helper" && req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        // Upload buffer to Cloudinary
+        const result = await new Promise((resolve, reject) => {
+          cloudinary.uploader.upload_stream(
+            { folder: "kyc_uploads" },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          ).end(file.buffer);
+        });
+        
+        kycDocs.push({
+          type: "document",
+          url: result.secure_url,
+        });
+      }
+    }
+
+    // 3. Create new user
     user = new User({
       name,
       email,
@@ -28,6 +51,7 @@ router.post("/signup", async (req, res) => {
       phone,
       address,
       role,
+      kycDocs,
     });
 
     await user.save();

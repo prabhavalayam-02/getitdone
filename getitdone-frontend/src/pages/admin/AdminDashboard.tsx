@@ -6,11 +6,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import Navbar from '@/components/layout/Navbar';
 import { adminAPI, tasksAPI } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
-import { Users, CheckCircle, Clock, List, Trash2, UserCheck, UserX } from 'lucide-react';
+import { Users, CheckCircle, Clock, List, Trash2, UserCheck, UserX, Eye, FileText } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 const AdminDashboard: React.FC = () => {
   const [pendingHelpers, setPendingHelpers] = useState([]);
   const [approvedHelpers, setApprovedHelpers] = useState([]);
+  const [rejectedHelpers, setRejectedHelpers] = useState([]);
   const [allTasks, setAllTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pending-helpers');
@@ -22,14 +24,16 @@ const AdminDashboard: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const [pending, approved, tasks] = await Promise.all([
+      const [pending, approved, rejected, tasks] = await Promise.all([
         adminAPI.getPendingHelpers(),
         adminAPI.getApprovedHelpers(),
+        adminAPI.getRejectedHelpers(),
         tasksAPI.getTasks(),
       ]);
       
       setPendingHelpers(pending);
       setApprovedHelpers(approved);
+      setRejectedHelpers(rejected);
       setAllTasks(tasks);
     } catch (error) {
       toast({
@@ -164,19 +168,66 @@ const AdminDashboard: React.FC = () => {
             </TableHeader>
             <TableBody>
               {pendingHelpers.map((helper) => (
-                <TableRow key={helper.id}>
+                <TableRow key={helper._id || helper.id}>
                   <TableCell className="font-medium">{helper.name}</TableCell>
                   <TableCell>{helper.email}</TableCell>
                   <TableCell>{helper.phone || 'Not provided'}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary">KYC Uploaded</Badge>
+                    {helper.kycDocs && helper.kycDocs.length > 0 ? (
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-4 w-4 mr-1" />
+                            View KYC ({helper.kycDocs.length})
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-3xl">
+                          <DialogHeader>
+                            <DialogTitle>KYC Documents - {helper.name}</DialogTitle>
+                          </DialogHeader>
+                          <div className="grid gap-4 mt-4">
+                            {helper.kycDocs.map((doc: any, index: number) => {
+                              const docUrl = doc?.url || doc;
+                              if (!docUrl) return null;
+                              
+                              const isImage = typeof docUrl === 'string' && docUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                              
+                              return (
+                                <div key={index} className="border rounded-lg p-4">
+                                  <p className="text-sm text-muted-foreground mb-2">Document {index + 1}</p>
+                                  {isImage ? (
+                                    <img 
+                                      src={docUrl} 
+                                      alt={`KYC Document ${index + 1}`}
+                                      className="w-full h-auto rounded-lg"
+                                    />
+                                  ) : (
+                                    <a 
+                                      href={docUrl} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="flex items-center text-primary hover:underline"
+                                    >
+                                      <FileText className="h-4 w-4 mr-2" />
+                                      View Document
+                                    </a>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    ) : (
+                      <Badge variant="secondary">No KYC</Badge>
+                    )}
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
                       <Button
                         size="sm"
                         variant="success"
-                        onClick={() => handleApproveHelper(helper.id)}
+                        onClick={() => handleApproveHelper(helper._id || helper.id)}
                       >
                         <CheckCircle className="h-4 w-4 mr-1" />
                         Approve
@@ -184,7 +235,7 @@ const AdminDashboard: React.FC = () => {
                       <Button
                         size="sm"
                         variant="destructive"
-                        onClick={() => handleRejectHelper(helper.id)}
+                        onClick={() => handleRejectHelper(helper._id || helper.id)}
                       >
                         <UserX className="h-4 w-4 mr-1" />
                         Reject
@@ -225,7 +276,7 @@ const AdminDashboard: React.FC = () => {
             </TableHeader>
             <TableBody>
               {approvedHelpers.map((helper) => (
-                <TableRow key={helper.id}>
+                <TableRow key={helper._id || helper.id}>
                   <TableCell className="font-medium">{helper.name}</TableCell>
                   <TableCell>{helper.email}</TableCell>
                   <TableCell>{helper.phone || 'Not provided'}</TableCell>
@@ -236,10 +287,61 @@ const AdminDashboard: React.FC = () => {
                     <Button
                       size="sm"
                       variant="warning"
-                      onClick={() => handleRevokeApproval(helper.id)}
+                      onClick={() => handleRevokeApproval(helper._id || helper.id)}
                     >
                       <UserX className="h-4 w-4 mr-1" />
                       Revoke
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  const renderRejectedHelpers = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Rejected Helpers</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {rejectedHelpers.length === 0 ? (
+          <div className="text-center py-8">
+            <UserX className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-foreground mb-2">No rejected helpers</h3>
+            <p className="text-muted-foreground">No helper applications have been rejected.</p>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rejectedHelpers.map((helper) => (
+                <TableRow key={helper._id || helper.id}>
+                  <TableCell className="font-medium">{helper.name}</TableCell>
+                  <TableCell>{helper.email}</TableCell>
+                  <TableCell>{helper.phone || 'Not provided'}</TableCell>
+                  <TableCell>
+                    <Badge className="bg-red-100 text-red-800">Rejected</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      size="sm"
+                      variant="success"
+                      onClick={() => handleApproveHelper(helper._id || helper.id)}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Approve
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -277,21 +379,29 @@ const AdminDashboard: React.FC = () => {
             </TableHeader>
             <TableBody>
               {allTasks.map((task) => (
-                <TableRow key={task.id}>
+                <TableRow key={task._id || task.id}>
                   <TableCell className="font-medium">{task.title}</TableCell>
                   <TableCell>
                     <Badge className={getTaskStatusColor(task.status)}>
                       {task.status.replace('-', ' ')}
                     </Badge>
                   </TableCell>
-                  <TableCell>{task.createdBy}</TableCell>
-                  <TableCell>{task.acceptedBy || 'Not assigned'}</TableCell>
+                  <TableCell>
+                    {typeof task.createdBy === 'object' && task.createdBy?.name 
+                      ? task.createdBy.name 
+                      : task.createdBy || 'Unknown'}
+                  </TableCell>
+                  <TableCell>
+                    {typeof task.acceptedBy === 'object' && task.acceptedBy?.name
+                      ? task.acceptedBy.name
+                      : task.acceptedBy || 'Not assigned'}
+                  </TableCell>
                   <TableCell>${task.budget}</TableCell>
                   <TableCell>
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => handleDeleteTask(task.id)}
+                      onClick={() => handleDeleteTask(task._id || task.id)}
                     >
                       <Trash2 className="h-4 w-4 mr-1" />
                       Delete
@@ -360,30 +470,34 @@ const AdminDashboard: React.FC = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Active Tasks</p>
-                  <p className="text-2xl font-bold text-orange-600">
-                    {allTasks.filter(task => task.status !== 'completed').length}
-                  </p>
+                  <p className="text-sm font-medium text-muted-foreground">Rejected Helpers</p>
+                  <p className="text-2xl font-bold text-red-600">{rejectedHelpers.length}</p>
                 </div>
-                <CheckCircle className="h-8 w-8 text-orange-600" />
+                <UserX className="h-8 w-8 text-red-600" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex space-x-1 mb-6">
+        Tab Navigation
+        <div className="flex flex-wrap gap-1 mb-6">
           <Button
             variant={activeTab === 'pending-helpers' ? 'default' : 'ghost'}
             onClick={() => setActiveTab('pending-helpers')}
           >
-            Pending Helpers ({pendingHelpers.length})
+            Pending ({pendingHelpers.length})
           </Button>
           <Button
             variant={activeTab === 'approved-helpers' ? 'default' : 'ghost'}
             onClick={() => setActiveTab('approved-helpers')}
           >
-            Approved Helpers ({approvedHelpers.length})
+            Approved ({approvedHelpers.length})
+          </Button>
+          <Button
+            variant={activeTab === 'rejected-helpers' ? 'default' : 'ghost'}
+            onClick={() => setActiveTab('rejected-helpers')}
+          >
+            Rejected ({rejectedHelpers.length})
           </Button>
           <Button
             variant={activeTab === 'all-tasks' ? 'default' : 'ghost'}
@@ -397,6 +511,7 @@ const AdminDashboard: React.FC = () => {
         <div className="animate-fade-in">
           {activeTab === 'pending-helpers' && renderPendingHelpers()}
           {activeTab === 'approved-helpers' && renderApprovedHelpers()}
+          {activeTab === 'rejected-helpers' && renderRejectedHelpers()}
           {activeTab === 'all-tasks' && renderAllTasks()}
         </div>
       </div>

@@ -29,7 +29,7 @@ const MyTasksPage: React.FC = () => {
 
   const loadTasks = async () => {
     try {
-      const userTasks = await tasksAPI.getTasks({ createdBy: userName });
+      const userTasks = await tasksAPI.getMyTasks();
       setTasks(userTasks);
     } catch (error) {
       toast({
@@ -196,7 +196,7 @@ const MyTasksPage: React.FC = () => {
             <div className="grid gap-6">
               {filteredTasks.map((task) => (
                 <TaskCard
-                  key={task.id}
+                  key={task._id || task.id}
                   task={task}
                   userRole="user"
                   onDelete={handleDeleteTask}

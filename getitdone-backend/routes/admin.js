@@ -27,10 +27,33 @@ router.get("/helpers/pending", auth, async (req, res) => {
 });
 
 /**
- * @route   PATCH /api/admin/helpers/:id/approve
+ * @route   GET /api/admin/helpers
+ * @desc    Get all helpers with optional status filter
+ */
+router.get("/helpers", auth, async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ msg: "Only admins can view helpers" });
+    }
+
+    const { status } = req.query;
+    const filter = { role: "helper" };
+    if (status) filter.helperStatus = status;
+
+    const helpers = await User.find(filter).select("-password");
+
+    res.json(helpers);
+  } catch (error) {
+    console.error("Admin Get Helpers Error:", error);
+    res.status(500).json({ msg: "Server error", error: error.message });
+  }
+});
+
+/**
+ * @route   POST /api/admin/helpers/:id/approve
  * @desc    Approve a helper account
  */
-router.patch("/helpers/:id/approve", auth, async (req, res) => {
+router.post("/helpers/:id/approve", auth, async (req, res) => {
   try {
     if (req.user.role !== "admin") {
       return res.status(403).json({ msg: "Only admins can approve helpers" });
@@ -54,10 +77,10 @@ router.patch("/helpers/:id/approve", auth, async (req, res) => {
 });
 
 /**
- * @route   PATCH /api/admin/helpers/:id/reject
+ * @route   POST /api/admin/helpers/:id/reject
  * @desc    Reject a helper account
  */
-router.patch("/helpers/:id/reject", auth, async (req, res) => {
+router.post("/helpers/:id/reject", auth, async (req, res) => {
   try {
     if (req.user.role !== "admin") {
       return res.status(403).json({ msg: "Only admins can reject helpers" });

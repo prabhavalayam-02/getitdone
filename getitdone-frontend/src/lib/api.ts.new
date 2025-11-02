@@ -43,11 +43,11 @@ const getAuthHeaders = () => ({
 
 // Auth API
 export const authAPI = {
-  login: async (email: string, password: string): Promise<LoginResponse> => {
+  login: async (email: string, password: string, role: string): Promise<LoginResponse> => {
     const response = await fetch(API_ENDPOINTS.LOGIN, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, role }),
     });
     
     return handleResponse(response);
@@ -58,15 +58,6 @@ export const authAPI = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData),
-    });
-    
-    return handleResponse(response);
-  },
-
-  signupWithFiles: async (formData: FormData): Promise<LoginResponse> => {
-    const response = await fetch(API_ENDPOINTS.SIGNUP, {
-      method: 'POST',
-      body: formData, // Don't set Content-Type header - browser will set it with boundary
     });
     
     return handleResponse(response);
@@ -100,25 +91,9 @@ export const tasksAPI = {
     return handleResponse(response);
   },
 
-  getMyTasks: async () => {
-    const response = await fetch(API_ENDPOINTS.MY_TASKS, {
-      headers: getAuthHeaders(),
-    });
-    
-    return handleResponse(response);
-  },
-
   getTasks: async (filters?: { status?: string; createdBy?: string; acceptedBy?: string }) => {
-    let url = API_ENDPOINTS.TASKS;
-    if (filters) {
-      const queryParams = new URLSearchParams(
-        Object.entries(filters).reduce((acc, [key, value]) => {
-          if (value) acc[key] = value;
-          return acc;
-        }, {} as Record<string, string>)
-      ).toString();
-      if (queryParams) url = `${url}?${queryParams}`;
-    }
+    const queryParams = new URLSearchParams(filters as Record<string, string>).toString();
+    const url = queryParams ? `${API_ENDPOINTS.TASKS}?${queryParams}` : API_ENDPOINTS.TASKS;
     
     const response = await fetch(url, {
       headers: getAuthHeaders(),
@@ -127,28 +102,11 @@ export const tasksAPI = {
     return handleResponse(response);
   },
 
-  acceptTask: async (taskId: string) => {
-    const response = await fetch(`${API_ENDPOINTS.TASKS}/${taskId}/accept`, {
-      method: 'POST',
+  updateTaskStatus: async (taskId: string, status: string, acceptedBy?: string) => {
+    const response = await fetch(API_ENDPOINTS.TASK_BY_ID(taskId), {
+      method: 'PATCH',
       headers: getAuthHeaders(),
-    });
-    
-    return handleResponse(response);
-  },
-
-  startTask: async (taskId: string) => {
-    const response = await fetch(`${API_ENDPOINTS.TASKS}/${taskId}/start`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-    });
-    
-    return handleResponse(response);
-  },
-
-  completeTask: async (taskId: string) => {
-    const response = await fetch(`${API_ENDPOINTS.TASKS}/${taskId}/complete`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
+      body: JSON.stringify({ status, acceptedBy }),
     });
     
     return handleResponse(response);
@@ -182,14 +140,6 @@ export const adminAPI = {
     return handleResponse(response);
   },
 
-  getRejectedHelpers: async () => {
-    const response = await fetch(`${API_ENDPOINTS.ADMIN_HELPERS}?status=rejected`, {
-      headers: getAuthHeaders(),
-    });
-    
-    return handleResponse(response);
-  },
-
   approveHelper: async (helperId: string) => {
     const response = await fetch(`${API_ENDPOINTS.ADMIN_HELPERS}/${helperId}/approve`, {
       method: 'POST',
@@ -200,16 +150,6 @@ export const adminAPI = {
   },
 
   rejectHelper: async (helperId: string) => {
-    const response = await fetch(`${API_ENDPOINTS.ADMIN_HELPERS}/${helperId}/reject`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-    });
-    
-    return handleResponse(response);
-  },
-
-  revokeHelperApproval: async (helperId: string) => {
-    // Revoke is same as reject - sets status back to pending or rejected
     const response = await fetch(`${API_ENDPOINTS.ADMIN_HELPERS}/${helperId}/reject`, {
       method: 'POST',
       headers: getAuthHeaders(),

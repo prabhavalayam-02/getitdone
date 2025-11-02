@@ -14,20 +14,42 @@ const HelperDashboard: React.FC = () => {
   const [myTasks, setMyTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const userId = localStorage.getItem('userId');
   const userName = localStorage.getItem('userName') || 'Helper';
   
-  // Mock helper status - in real app this would come from API
-  const [helperStatus] = useState<'approved' | 'pending'>('approved'); // Switch to 'pending' to test pending state
+  const [helperStatus, setHelperStatus] = useState<'approved' | 'pending' | 'rejected'>(
+    (localStorage.getItem('helperStatus') as 'approved' | 'pending' | 'rejected') || 'pending'
+  );
 
   useEffect(() => {
+    fetchHelperStatus();
     loadTasks();
   }, []);
+
+  const fetchHelperStatus = async () => {
+    try {
+      const token = localStorage.getItem('jwt');
+      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setHelperStatus(data.helperStatus || 'pending');
+        localStorage.setItem('helperStatus', data.helperStatus);
+      }
+    } catch (error) {
+      console.error('Failed to fetch helper status:', error);
+    }
+  };
 
   const loadTasks = async () => {
     try {
       const [available, accepted] = await Promise.all([
         tasksAPI.getTasks({ status: 'open' }),
-        tasksAPI.getTasks({ acceptedBy: userName }),
+        userId ? tasksAPI.getTasks({ acceptedBy: userId }) : Promise.resolve([]),
       ]);
       
       setAvailableTasks(available);
@@ -47,14 +69,16 @@ const HelperDashboard: React.FC = () => {
     if (helperStatus !== 'approved') {
       toast({
         variant: "destructive",
-        title: "Account Pending",
-        description: "Your helper account is still pending approval. You cannot accept tasks yet.",
+        title: "Action not allowed",
+        description: helperStatus === 'pending' 
+          ? "Your helper account is pending approval. You cannot accept tasks yet." 
+          : "Your helper application was rejected. Please update your KYC documents in your profile to reapply.",
       });
       return;
     }
 
     try {
-      await tasksAPI.updateTaskStatus(taskId, 'accepted', userName);
+      await tasksAPI.acceptTask(taskId);
       await loadTasks(); // Refresh tasks
       toast({
         title: "Task accepted",
@@ -71,7 +95,7 @@ const HelperDashboard: React.FC = () => {
 
   const handleStartTask = async (taskId: string) => {
     try {
-      await tasksAPI.updateTaskStatus(taskId, 'in-progress');
+      await tasksAPI.startTask(taskId);
       await loadTasks();
       toast({
         title: "Task started",
@@ -88,7 +112,7 @@ const HelperDashboard: React.FC = () => {
 
   const handleCompleteTask = async (taskId: string) => {
     try {
-      await tasksAPI.updateTaskStatus(taskId, 'completed');
+      await tasksAPI.completeTask(taskId);
       await loadTasks();
       toast({
         title: "Task completed",
@@ -135,22 +159,28 @@ const HelperDashboard: React.FC = () => {
       <Navbar role="helper" />
       
       <div className="container mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8 animate-fade-in">
-          <div className="flex items-center justify-between">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">
-                Welcome, {userName}!
-              </h1>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Welcome, {userName}!</h1>
               <p className="text-muted-foreground">
-                Find and complete tasks to earn money in your community.
+                {helperStatus === 'approved' 
+                  ? 'Find and complete tasks to earn money in your community.' 
+                  : helperStatus === 'pending'
+                    ? 'Your application is under review. You can browse tasks but cannot accept them yet.'
+                    : 'Your application was rejected. Please update your KYC documents in your profile to reapply.'}
               </p>
             </div>
             <Badge 
-              variant={helperStatus === 'approved' ? 'default' : 'secondary'}
-              className={helperStatus === 'approved' ? 'bg-green-600' : 'bg-yellow-600'}
+              className={`
+                ${helperStatus === 'approved' ? 'bg-green-600' : ''}
+                ${helperStatus === 'pending' ? 'bg-yellow-600' : ''}
+                ${helperStatus === 'rejected' ? 'bg-red-600' : ''}
+              `}
             >
-              {helperStatus === 'approved' ? 'Approved Helper' : 'Pending Approval'}
+              {helperStatus === 'approved' && 'Approved Helper'}
+              {helperStatus === 'pending' && 'Pending Approval'}
+              {helperStatus === 'rejected' && 'Application Rejected'}
             </Badge>
           </div>
         </div>
@@ -284,7 +314,7 @@ const HelperDashboard: React.FC = () => {
               <div className="grid gap-4">
                 {availableTasks.slice(0, 3).map((task) => (
                   <TaskCard
-                    key={task.id}
+                    key={task._id || task.id}
                     task={task}
                     userRole="helper"
                     onAccept={handleAcceptTask}

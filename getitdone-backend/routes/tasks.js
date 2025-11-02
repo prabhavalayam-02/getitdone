@@ -120,6 +120,64 @@ router.post("/:id/complete", authMiddleware, async (req, res) => {
 });
 
 /**
+ * @route   GET /api/tasks/my-tasks
+ * @desc    Get tasks created by the logged-in user
+ */
+router.get("/my-tasks", authMiddleware, async (req, res) => {
+  try {
+    const tasks = await Task.find({ createdBy: req.user.id })
+      .populate("acceptedBy", "name email")
+      .sort({ createdAt: -1 });
+
+    res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ msg: "Server error", error: error.message });
+  }
+});
+
+/**
+ * @route   GET /api/tasks
+ * @desc    Get all tasks with optional filters
+ */
+router.get("/", authMiddleware, async (req, res) => {
+  try {
+    const { status, createdBy, acceptedBy } = req.query;
+    const filter = {};
+
+    if (status) filter.status = status;
+    if (createdBy) filter.createdBy = createdBy;
+    if (acceptedBy) filter.acceptedBy = acceptedBy;
+
+    const tasks = await Task.find(filter)
+      .populate("createdBy", "name email")
+      .populate("acceptedBy", "name email")
+      .sort({ createdAt: -1 });
+
+    res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ msg: "Server error", error: error.message });
+  }
+});
+
+/**
+ * @route   GET /api/tasks/:id
+ * @desc    Get a single task by ID
+ */
+router.get("/:id", authMiddleware, async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id)
+      .populate("createdBy", "name email")
+      .populate("acceptedBy", "name email");
+
+    if (!task) return res.status(404).json({ msg: "Task not found" });
+
+    res.json(task);
+  } catch (error) {
+    res.status(500).json({ msg: "Server error", error: error.message });
+  }
+});
+
+/**
  * @route   DELETE /api/tasks/:id
  * @desc    Delete a task (only creator or admin can delete)
  */

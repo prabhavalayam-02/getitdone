@@ -16,7 +16,7 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleLogin = async (role: 'user' | 'helper' | 'admin') => {
+  const handleLogin = async () => {
     if (!email || !password) {
       toast({
         variant: "destructive",
@@ -28,18 +28,23 @@ const LoginPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await authAPI.login(email, password, role);
+      const response = await authAPI.login(email, password);
       
       localStorage.setItem('jwt', response.token);
       localStorage.setItem('userRole', response.user.role);
       localStorage.setItem('userName', response.user.name);
+      localStorage.setItem('userId', response.user.id);
+      if (response.user.helperStatus) {
+        localStorage.setItem('helperStatus', response.user.helperStatus);
+      }
       
       toast({
         title: "Login successful",
         description: `Welcome back, ${response.user.name}!`,
       });
       
-      // Redirect based on role
+      // Redirect based on role from backend
+      const role = response.user.role;
       if (role === 'admin') {
         navigate('/admin');
       } else {
@@ -119,29 +124,17 @@ const LoginPage: React.FC = () => {
             </div>
 
             <div className="space-y-3">
-              <p className="text-sm font-medium text-center">Choose your login type:</p>
-              {loginButtons.map((button) => {
-                const Icon = button.icon;
-                return (
-                  <Button
-                    key={button.role}
-                    variant={button.variant}
-                    className="w-full justify-start h-auto p-4"
-                    onClick={() => handleLogin(button.role)}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <Loader2 className="h-4 w-4 mr-3 animate-spin" />
-                    ) : (
-                      <Icon className="h-5 w-5 mr-3" />
-                    )}
-                    <div className="text-left">
-                      <div className="font-medium">{button.label}</div>
-                      <div className="text-xs opacity-80">{button.description}</div>
-                    </div>
-                  </Button>
-                );
-              })}
+              <Button
+                variant="hero"
+                className="w-full"
+                onClick={handleLogin}
+                disabled={loading}
+              >
+                {loading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : null}
+                Sign In
+              </Button>
             </div>
 
             <div className="text-center text-sm">

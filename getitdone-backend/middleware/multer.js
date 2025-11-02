@@ -3,11 +3,7 @@ const multer = require("multer");
 const path = require("path");
 
 // Use memory storage since we upload directly to Cloudinary
-const storage = multer.diskStorage({
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // unique filename
-  },
-});
+const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
   const allowedTypes = /jpeg|jpg|png|pdf/;

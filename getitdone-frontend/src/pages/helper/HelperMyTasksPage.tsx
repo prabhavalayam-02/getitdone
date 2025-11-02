@@ -14,7 +14,7 @@ const HelperMyTasksPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
   const { toast } = useToast();
-  const userName = localStorage.getItem('userName') || 'Helper';
+  const userId = localStorage.getItem('userId');
 
   useEffect(() => {
     loadTasks();
@@ -26,7 +26,7 @@ const HelperMyTasksPage: React.FC = () => {
 
   const loadTasks = async () => {
     try {
-      const myTasks = await tasksAPI.getTasks({ acceptedBy: userName });
+      const myTasks = userId ? await tasksAPI.getTasks({ acceptedBy: userId }) : [];
       setTasks(myTasks);
     } catch (error) {
       toast({
@@ -51,7 +51,7 @@ const HelperMyTasksPage: React.FC = () => {
 
   const handleStartTask = async (taskId: string) => {
     try {
-      await tasksAPI.updateTaskStatus(taskId, 'in-progress');
+      await tasksAPI.startTask(taskId);
       await loadTasks();
       toast({
         title: "Task started",
@@ -68,7 +68,7 @@ const HelperMyTasksPage: React.FC = () => {
 
   const handleCompleteTask = async (taskId: string) => {
     try {
-      await tasksAPI.updateTaskStatus(taskId, 'completed');
+      await tasksAPI.completeTask(taskId);
       await loadTasks();
       toast({
         title: "Task completed",
@@ -237,7 +237,7 @@ const HelperMyTasksPage: React.FC = () => {
             <div className="grid gap-6">
               {filteredTasks.map((task) => (
                 <TaskCard
-                  key={task.id}
+                  key={task._id || task.id}
                   task={task}
                   userRole="helper"
                   onStart={handleStartTask}

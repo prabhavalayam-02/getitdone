@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { MapPin, Calendar, DollarSign, User, Trash2, Play, CheckCircle } from 'lucide-react';
 
 export interface Task {
-  id: string;
+  _id: string;
+  id?: string;
   title: string;
   description: string;
   location: string;
@@ -13,8 +14,8 @@ export interface Task {
   category: string;
   date: string;
   status: 'open' | 'accepted' | 'in-progress' | 'completed';
-  createdBy?: string;
-  acceptedBy?: string;
+  createdBy?: { _id: string; name: string; email: string } | string;
+  acceptedBy?: { _id: string; name: string; email: string } | string;
 }
 
 interface TaskCardProps {
@@ -60,7 +61,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           <Button 
             variant="destructive" 
             size="sm" 
-            onClick={() => onDelete?.(task.id)}
+            onClick={() => onDelete?.(task._id || task.id!)}
           >
             <Trash2 className="h-4 w-4 mr-1" />
             Delete
@@ -73,7 +74,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
             <Button 
               variant="hero" 
               size="sm" 
-              onClick={() => onAccept?.(task.id)}
+              onClick={() => onAccept?.(task._id || task.id!)}
             >
               Accept Task
             </Button>
@@ -83,7 +84,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
             <Button 
               variant="success" 
               size="sm" 
-              onClick={() => onStart?.(task.id)}
+              onClick={() => onStart?.(task._id || task.id!)}
             >
               <Play className="h-4 w-4 mr-1" />
               Start Task
@@ -94,7 +95,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
             <Button 
               variant="success" 
               size="sm" 
-              onClick={() => onComplete?.(task.id)}
+              onClick={() => onComplete?.(task._id || task.id!)}
             >
               <CheckCircle className="h-4 w-4 mr-1" />
               Complete
@@ -108,7 +109,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           <Button 
             variant="destructive" 
             size="sm" 
-            onClick={() => onDelete?.(task.id)}
+            onClick={() => onDelete?.(task._id || task.id!)}
           >
             <Trash2 className="h-4 w-4 mr-1" />
             Delete
@@ -157,8 +158,12 @@ const TaskCard: React.FC<TaskCardProps> = ({
         
         {(task.createdBy || task.acceptedBy) && (
           <div className="text-sm text-muted-foreground">
-            {task.createdBy && <p>Created by: {task.createdBy}</p>}
-            {task.acceptedBy && <p>Accepted by: {task.acceptedBy}</p>}
+            {task.createdBy && (
+              <p>Created by: {typeof task.createdBy === 'object' ? task.createdBy.name : task.createdBy}</p>
+            )}
+            {task.acceptedBy && (
+              <p>Accepted by: {typeof task.acceptedBy === 'object' ? task.acceptedBy.name : task.acceptedBy}</p>
+            )}
           </div>
         )}
         
