@@ -69,6 +69,11 @@ const TaskSchema = new mongoose.Schema(
     rating: { type: Number, min: 1, max: 5 },
     review: { type: String },
     reviewedAt: { type: Date },
+    
+    // Rating and review from helper to tasker (user)
+    taskerRating: { type: Number, min: 1, max: 5 },
+    taskerReview: { type: String },
+    taskerReviewedAt: { type: Date },
   },
   { timestamps: true }
 );

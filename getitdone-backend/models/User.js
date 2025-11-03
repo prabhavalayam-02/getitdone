@@ -19,7 +19,7 @@ const UserSchema = new mongoose.Schema(
     helperStatus: {
       type: String,
       enum: ["pending", "approved", "rejected"],
-      default: "pending",
+      default: null,
     },
     kycDocs: [
       {
@@ -35,6 +35,10 @@ const UserSchema = new mongoose.Schema(
     totalEarnings: { type: Number, default: 0 },
     rating: { type: Number, default: 0 },
     totalRatings: { type: Number, default: 0 },
+    
+    // Tasker stats (when user creates tasks and gets rated by helpers)
+    taskerRating: { type: Number, default: 0 },
+    taskerTotalRatings: { type: Number, default: 0 },
     
     // Subscription fields for helpers
     subscription: {

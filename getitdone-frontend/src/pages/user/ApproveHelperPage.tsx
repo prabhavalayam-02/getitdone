@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import Navbar from '@/components/layout/Navbar';
 import { Loader2 } from 'lucide-react';
+import { getApiUrl } from '@/lib/utils/api-url';
 
 const ApproveHelperPage: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
@@ -29,7 +30,7 @@ const ApproveHelperPage: React.FC = () => {
           return;
         }
 
-        const response = await fetch(`http://localhost:5000/api/tasks/${taskId}/approve-helper`, {
+        const response = await fetch(getApiUrl(`/api/tasks/${taskId}/approve-helper`), {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

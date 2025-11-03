@@ -52,6 +52,8 @@ router.post("/signup", upload.array("kycDocs", 3), async (req, res) => {
       address,
       role,
       kycDocs,
+      // If signing up as helper with KYC, set status to pending for admin review
+      helperStatus: (role === "helper" && kycDocs.length > 0) ? "pending" : null,
     });
 
     await user.save();

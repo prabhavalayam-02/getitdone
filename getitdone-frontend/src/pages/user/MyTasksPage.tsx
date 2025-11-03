@@ -10,6 +10,7 @@ import { tasksAPI } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Search, Filter } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getApiUrl } from '@/lib/utils/api-url';
 
 const MyTasksPage: React.FC = () => {
   const [tasks, setTasks] = useState([]);
@@ -92,7 +93,7 @@ const MyTasksPage: React.FC = () => {
 
     try {
       const token = localStorage.getItem('jwt');
-      const response = await fetch(`http://localhost:5000/api/tasks/${selectedTask._id || selectedTask.id}/rate`, {
+      const response = await fetch(getApiUrl(`/api/tasks/${selectedTask._id || selectedTask.id}/rate`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -125,7 +126,7 @@ const MyTasksPage: React.FC = () => {
   const handleApproveHelper = async (taskId: string) => {
     try {
       const token = localStorage.getItem('jwt');
-      const response = await fetch(`http://localhost:5000/api/tasks/${taskId}/approve-helper`, {
+      const response = await fetch(getApiUrl(`/api/tasks/${taskId}/approve-helper`), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -153,7 +154,7 @@ const MyTasksPage: React.FC = () => {
   const handleRejectHelper = async (taskId: string) => {
     try {
       const token = localStorage.getItem('jwt');
-      const response = await fetch(`http://localhost:5000/api/tasks/${taskId}/reject-helper`, {
+      const response = await fetch(getApiUrl(`/api/tasks/${taskId}/reject-helper`), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

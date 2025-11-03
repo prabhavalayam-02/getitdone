@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/enhanced-button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Calendar, IndianRupee, User, Trash2, Play, CheckCircle } from 'lucide-react';
+import { MapPin, Calendar, IndianRupee, User, Trash2, Play, CheckCircle, Eye } from 'lucide-react';
 
 export interface Task {
   _id: string;
@@ -26,6 +26,7 @@ interface TaskCardProps {
   onComplete?: (taskId: string) => void;
   onApprove?: (taskId: string) => void;
   onReject?: (taskId: string) => void;
+  onViewTasker?: (taskerId: string) => void;
   showActions?: boolean;
 }
 
@@ -37,6 +38,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   onComplete,
   onApprove,
   onReject,
+  onViewTasker,
   showActions = true,
 }) => {
   const getStatusColor = (status: string) => {
@@ -97,14 +99,27 @@ const TaskCard: React.FC<TaskCardProps> = ({
         
       case 'helper':
         if (task.status === 'open') {
+          const taskerId = typeof task.createdBy === 'object' ? task.createdBy._id : task.createdBy;
           return (
-            <Button 
-              variant="hero" 
-              size="sm" 
-              onClick={() => onAccept?.(task._id || task.id!)}
-            >
-              Accept Task
-            </Button>
+            <div className="flex gap-2">
+              {taskerId && onViewTasker && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => onViewTasker(taskerId)}
+                >
+                  <Eye className="h-4 w-4 mr-1" />
+                  View Tasker
+                </Button>
+              )}
+              <Button 
+                variant="hero" 
+                size="sm" 
+                onClick={() => onAccept?.(task._id || task.id!)}
+              >
+                Accept Task
+              </Button>
+            </div>
           );
         } else if (task.status === 'pending-approval') {
           return (

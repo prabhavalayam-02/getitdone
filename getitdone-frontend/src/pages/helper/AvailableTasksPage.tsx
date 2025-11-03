@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Search, Filter, AlertCircle } from 'lucide-react';
 
 const AvailableTasksPage: React.FC = () => {
+  const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -234,6 +236,7 @@ const AvailableTasksPage: React.FC = () => {
                   task={task}
                   userRole="helper"
                   onAccept={handleAcceptTask}
+                  onViewTasker={(taskerId) => navigate(`/reviews/tasker/${taskerId}`)}
                 />
               ))}
             </div>

@@ -8,7 +8,7 @@ import Navbar from '@/components/layout/Navbar';
 import { Star, Loader2, CheckCircle } from 'lucide-react';
 import { getApiUrl } from '@/lib/utils/api-url';
 
-const RateTaskPage: React.FC = () => {
+const RateTaskerPage: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -26,7 +26,7 @@ const RateTaskPage: React.FC = () => {
 
   const loadTask = async () => {
     if (!taskId) {
-      navigate('/user/my-tasks');
+      navigate('/helper/my-tasks');
       return;
     }
 
@@ -36,7 +36,7 @@ const RateTaskPage: React.FC = () => {
         toast({
           variant: "destructive",
           title: "Authentication Required",
-          description: "Please log in to rate tasks.",
+          description: "Please log in to rate task owners.",
         });
         navigate('/auth/login');
         return;
@@ -58,17 +58,17 @@ const RateTaskPage: React.FC = () => {
             title: "Cannot Rate",
             description: "Only completed tasks can be rated.",
           });
-          navigate('/user/my-tasks');
+          navigate('/helper/my-tasks');
           return;
         }
 
         // Check if already rated
-        if (data.rating) {
+        if (data.taskerRating) {
           toast({
             title: "Already Rated",
-            description: "You have already rated this task.",
+            description: "You have already rated this task owner.",
           });
-          navigate('/user/my-tasks');
+          navigate('/helper/my-tasks');
           return;
         }
 
@@ -82,7 +82,7 @@ const RateTaskPage: React.FC = () => {
         title: "Error",
         description: "Failed to load task details.",
       });
-      navigate('/user/my-tasks');
+      navigate('/helper/my-tasks');
     } finally {
       setLoading(false);
     }
@@ -111,7 +111,7 @@ const RateTaskPage: React.FC = () => {
 
     try {
       const token = localStorage.getItem('jwt');
-      const response = await fetch(getApiUrl(`/api/tasks/${taskId}/rate`), {
+      const response = await fetch(getApiUrl(`/api/tasks/${taskId}/rate-tasker`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -125,7 +125,7 @@ const RateTaskPage: React.FC = () => {
           title: "Rating Submitted!",
           description: "Thank you for your feedback!",
         });
-        navigate('/user/my-tasks');
+        navigate('/helper/my-tasks');
       } else {
         const data = await response.json();
         throw new Error(data.msg || 'Failed to submit rating');
@@ -144,14 +144,14 @@ const RateTaskPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar role="user" />
+        <Navbar role="helper" />
         <div className="container mx-auto px-4 py-16">
           <div className="max-w-2xl mx-auto">
             <Card>
-              <CardContent className="p-12 text-center">
-                <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-                <h2 className="text-xl font-semibold mb-2">Loading Task...</h2>
-                <p className="text-muted-foreground">Please wait...</p>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -160,90 +160,81 @@ const RateTaskPage: React.FC = () => {
     );
   }
 
+  if (!task) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      <Navbar role="user" />
+      <Navbar role="helper" />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-16">
         <div className="max-w-2xl mx-auto">
-          <Card className="animate-fade-in">
+          <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CheckCircle className="h-6 w-6 text-green-600" />
-                Rate Your Helper
+              <CardTitle className="text-2xl flex items-center gap-2">
+                <Star className="h-6 w-6 text-yellow-500" />
+                Rate Task Owner
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Task Details */}
               <div className="bg-muted p-4 rounded-lg">
-                <h3 className="font-semibold mb-2">Task: {task?.title}</h3>
-                <p className="text-sm text-muted-foreground mb-1">
-                  <strong>Budget:</strong> ₹{task?.budget}
-                </p>
-                {task?.acceptedBy && (
-                  <p className="text-sm text-muted-foreground">
-                    <strong>Helper:</strong> {task.acceptedBy.name || 'Unknown'}
-                  </p>
+                <h3 className="font-semibold mb-2">Task Details</h3>
+                <p className="text-sm"><strong>Title:</strong> {task.title}</p>
+                <p className="text-sm"><strong>Description:</strong> {task.description}</p>
+                <p className="text-sm"><strong>Budget:</strong> ₹{task.budget}</p>
+                {task.createdBy && typeof task.createdBy === 'object' && (
+                  <p className="text-sm"><strong>Task Owner:</strong> {task.createdBy.name}</p>
                 )}
               </div>
 
               {/* Star Rating */}
               <div>
-                <label className="block text-sm font-medium mb-3">
-                  How would you rate the helper's service? *
+                <label className="block text-sm font-medium mb-2">
+                  Your Rating <span className="text-destructive">*</span>
                 </label>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <button
+                    <Star
                       key={star}
-                      type="button"
+                      className={`h-10 w-10 cursor-pointer transition-colors ${
+                        star <= (hoverRating || rating)
+                          ? 'fill-yellow-400 text-yellow-400'
+                          : 'text-gray-300'
+                      }`}
                       onClick={() => setRating(star)}
                       onMouseEnter={() => setHoverRating(star)}
                       onMouseLeave={() => setHoverRating(0)}
-                      className="transition-transform hover:scale-110"
-                    >
-                      <Star
-                        className={`h-12 w-12 ${
-                          star <= (hoverRating || rating)
-                            ? 'fill-yellow-400 text-yellow-400'
-                            : 'text-gray-300'
-                        }`}
-                      />
-                    </button>
+                    />
                   ))}
+                  {rating > 0 && (
+                    <span className="ml-2 text-lg font-medium">
+                      {rating}.0
+                    </span>
+                  )}
                 </div>
-                {rating > 0 && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    {rating === 1 && '⭐ Poor'}
-                    {rating === 2 && '⭐⭐ Fair'}
-                    {rating === 3 && '⭐⭐⭐ Good'}
-                    {rating === 4 && '⭐⭐⭐⭐ Very Good'}
-                    {rating === 5 && '⭐⭐⭐⭐⭐ Excellent'}
-                  </p>
-                )}
               </div>
 
               {/* Review Text */}
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Write your review *
+                  Your Review <span className="text-destructive">*</span>
                 </label>
                 <Textarea
-                  placeholder="Share your experience with this helper... What did they do well? Any suggestions for improvement?"
+                  placeholder="Share your experience working with this task owner. Was the task description clear? Were they easy to communicate with? Would you work with them again?"
                   value={review}
                   onChange={(e) => setReview(e.target.value)}
-                  rows={6}
-                  className="resize-none"
+                  className="min-h-[150px]"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  {review.length}/500 characters
+                  Your honest feedback helps other helpers make informed decisions.
                 </p>
               </div>
 
-              {/* Action Buttons */}
+              {/* Submit Button */}
               <div className="flex gap-3 pt-4">
                 <Button
-                  variant="hero"
                   onClick={handleSubmitRating}
                   disabled={submitting || rating === 0 || !review.trim()}
                   className="flex-1"
@@ -262,18 +253,11 @@ const RateTaskPage: React.FC = () => {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => navigate('/user/my-tasks')}
+                  onClick={() => navigate('/helper/my-tasks')}
                   disabled={submitting}
                 >
                   Cancel
                 </Button>
-              </div>
-
-              {/* Info Box */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-900">
-                  💡 <strong>Your feedback helps!</strong> Ratings help other users find reliable helpers and help helpers improve their service.
-                </p>
               </div>
             </CardContent>
           </Card>
@@ -283,4 +267,4 @@ const RateTaskPage: React.FC = () => {
   );
 };
 
-export default RateTaskPage;
+export default RateTaskerPage;

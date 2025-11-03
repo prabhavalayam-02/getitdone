@@ -8,6 +8,7 @@ import { tasksAPI } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { Search, AlertCircle, CheckCircle, Clock, IndianRupee } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getApiUrl } from '@/lib/utils/api-url';
 
 const HelperDashboard: React.FC = () => {
   const [availableTasks, setAvailableTasks] = useState([]);
@@ -29,7 +30,7 @@ const HelperDashboard: React.FC = () => {
   const fetchHelperStatus = async () => {
     try {
       const token = localStorage.getItem('jwt');
-      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+      const response = await fetch(getApiUrl(`/api/users/${userId}`), {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

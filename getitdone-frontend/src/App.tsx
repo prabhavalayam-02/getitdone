@@ -20,7 +20,10 @@ import AvailableTasksPage from "./pages/helper/AvailableTasksPage";
 import HelperMyTasksPage from "./pages/helper/HelperMyTasksPage";
 import HelperProfilePage from "./pages/helper/HelperProfilePage";
 import SubscriptionPage from "./pages/helper/SubscriptionPage";
+import RateTaskerPage from "./pages/helper/RateTaskerPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import HelperReviewsPage from "./pages/reviews/HelperReviewsPage";
+import TaskerReviewsPage from "./pages/reviews/TaskerReviewsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,9 +57,14 @@ const App = () => (
           <Route path="/helper/my-tasks" element={<HelperMyTasksPage />} />
           <Route path="/helper/profile" element={<HelperProfilePage />} />
           <Route path="/helper/subscription" element={<SubscriptionPage />} />
+          <Route path="/helper/rate-tasker/:taskId" element={<RateTaskerPage />} />
           
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminDashboard />} />
+          
+          {/* Reviews Routes */}
+          <Route path="/reviews/helper/:helperId" element={<HelperReviewsPage />} />
+          <Route path="/reviews/tasker/:taskerId" element={<TaskerReviewsPage />} />
           
           {/* Catch-all route */}
           <Route path="*" element={<NotFound />} />

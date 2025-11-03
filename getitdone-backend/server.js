@@ -12,6 +12,7 @@ const adminRoutes = require("./routes/admin");
 const helperRoutes = require("./routes/helpers");
 const userRoutes = require("./routes/users");
 const subscriptionRoutes = require("./routes/subscription");
+const reviewsRoutes = require("./routes/reviews");
 
 const app = express();
 
@@ -64,7 +65,7 @@ const corsOptions = {
   credentials: true,
   optionsSuccessStatus: 200,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
 };
 app.use(cors(corsOptions));
 
@@ -105,6 +106,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/helpers", helperRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/subscription", subscriptionRoutes);
+app.use("/api/reviews", reviewsRoutes);
 
 // ===== Connect to MongoDB =====
 

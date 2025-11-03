@@ -236,3 +236,55 @@ export const fileAPI = {
     return handleResponse(response);
   },
 };
+
+// Helper API
+export const helperAPI = {
+  applyAsHelper: async (files: File[]) => {
+    const formData = new FormData();
+    files.forEach(file => formData.append('kycDocs', file));
+
+    const response = await fetch(API_ENDPOINTS.APPLY_HELPER, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${getAuthToken()}`,
+      },
+      body: formData,
+    });
+    
+    return handleResponse(response);
+  },
+
+  updateKYC: async (userId: string, files: File[]) => {
+    const formData = new FormData();
+    files.forEach(file => formData.append('kycDocs', file));
+
+    const response = await fetch(API_ENDPOINTS.UPDATE_KYC(userId), {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${getAuthToken()}`,
+      },
+      body: formData,
+    });
+    
+    return handleResponse(response);
+  },
+};
+
+// User profile API
+export const userAPI = {
+  updateProfile: async (userId: string, data: { 
+    name?: string; 
+    phone?: string; 
+    address?: string;
+    bio?: string;
+    skills?: string[];
+  }) => {
+    const response = await fetch(`${API_ENDPOINTS.TASKS.replace('/tasks', '')}/users/${userId}`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    
+    return handleResponse(response);
+  },
+};

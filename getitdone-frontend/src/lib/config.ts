@@ -33,4 +33,8 @@ export const API_ENDPOINTS = {
   // File upload
   UPLOAD_FILE: `${API_BASE_URL}/api/upload`,
   UPLOAD_KYC: `${API_BASE_URL}/api/helpers/kyc-upload`,
+  
+  // Helper application
+  APPLY_HELPER: `${API_BASE_URL}/api/helpers/apply`,
+  UPDATE_KYC: (userId: string) => `${API_BASE_URL}/api/helpers/${userId}/kyc`,
 };

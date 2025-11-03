@@ -2,7 +2,7 @@ const express = require("express");
 const Task = require("../models/Task");
 const User = require("../models/User");
 const authMiddleware = require("../middleware/auth");
-const { sendTaskAcceptedEmail, sendTaskCompletedEmail, sendSubscriptionReminderEmail, sendHelperApprovedEmail } = require("../utils/emailService");
+const { sendTaskAcceptedEmail, sendTaskCompletedEmail, sendSubscriptionReminderEmail, sendHelperApprovedEmail, sendHelperRejectedEmail, sendTaskCompletedEmailToHelper } = require("../utils/emailService");
 
 const router = express.Router();
 
@@ -25,6 +25,10 @@ router.post("/", authMiddleware, async (req, res) => {
     });
 
     await task.save();
+    
+    // Populate createdBy before returning so frontend gets the full user data
+    await task.populate("createdBy", "name email");
+    
     res.status(201).json(task);
   } catch (error) {
     res.status(500).json({ msg: "Server error", error: error.message });
@@ -109,7 +113,7 @@ router.post("/:id/accept", authMiddleware, async (req, res) => {
 router.post("/:id/approve-helper", authMiddleware, async (req, res) => {
   try {
     const task = await Task.findById(req.params.id)
-      .populate("createdBy", "name email")
+      .populate("createdBy", "name email phone")
       .populate("acceptedBy", "name email phone rating");
     
     if (!task) return res.status(404).json({ msg: "Task not found" });
@@ -148,7 +152,9 @@ router.post("/:id/approve-helper", authMiddleware, async (req, res) => {
  */
 router.post("/:id/reject-helper", authMiddleware, async (req, res) => {
   try {
-    const task = await Task.findById(req.params.id).populate("createdBy", "name email");
+    const task = await Task.findById(req.params.id)
+      .populate("createdBy", "name email phone")
+      .populate("acceptedBy", "name email phone");
     
     if (!task) return res.status(404).json({ msg: "Task not found" });
 
@@ -161,10 +167,23 @@ router.post("/:id/reject-helper", authMiddleware, async (req, res) => {
       return res.status(400).json({ msg: "Task is not pending approval" });
     }
 
+    // Store helper info before removing
+    const helper = task.acceptedBy;
+
     // Reject: change back to open and remove acceptedBy
     task.status = "open";
     task.acceptedBy = null;
     await task.save();
+
+    // Send email notification to helper
+    if (helper) {
+      try {
+        await sendHelperRejectedEmail(task, helper, task.createdBy);
+      } catch (emailError) {
+        console.error("Email notification failed:", emailError);
+        // Don't fail the request if email fails
+      }
+    }
 
     res.json({ msg: "Helper rejected. Task is now available for other helpers.", task });
   } catch (err) {
@@ -217,11 +236,17 @@ router.post("/:id/complete", authMiddleware, async (req, res) => {
       await helper.save();
     }
 
-    // Send email notification to tasker
+    // Send email notifications to both tasker and helper
     try {
       await sendTaskCompletedEmail(task, helper, task.createdBy);
     } catch (emailError) {
-      console.error("Email notification failed:", emailError);
+      console.error("Email notification to tasker failed:", emailError);
+    }
+
+    try {
+      await sendTaskCompletedEmailToHelper(task, helper, task.createdBy);
+    } catch (emailError) {
+      console.error("Email notification to helper failed:", emailError);
     }
 
     res.json({ msg: "Task completed successfully", task });
@@ -238,6 +263,7 @@ router.post("/:id/complete", authMiddleware, async (req, res) => {
 router.get("/my-tasks", authMiddleware, async (req, res) => {
   try {
     const tasks = await Task.find({ createdBy: req.user.id })
+      .populate("createdBy", "name email")
       .populate("acceptedBy", "name email")
       .sort({ createdAt: -1 });
 
@@ -292,6 +318,61 @@ router.post("/:id/rate", authMiddleware, async (req, res) => {
       helper.rating = newRating;
       helper.totalRatings = totalRatings;
       await helper.save();
+    }
+
+    res.json({ msg: "Rating submitted successfully", task });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
+/**
+ * @route   POST /api/tasks/:id/rate-tasker
+ * @desc    Rate and review a task owner (only helper who completed can rate)
+ */
+router.post("/:id/rate-tasker", authMiddleware, async (req, res) => {
+  try {
+    const { rating, review } = req.body;
+    
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ msg: "Rating must be between 1 and 5" });
+    }
+
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ msg: "Task not found" });
+
+    // Only the helper who completed the task can rate the tasker
+    if (task.acceptedBy.toString() !== req.user.id) {
+      return res.status(403).json({ msg: "Only the helper who completed this task can rate the task owner" });
+    }
+
+    // Task must be completed
+    if (task.status !== "completed") {
+      return res.status(400).json({ msg: "Can only rate completed tasks" });
+    }
+
+    // Check if already rated
+    if (task.taskerRating) {
+      return res.status(400).json({ msg: "Task owner already rated" });
+    }
+
+    // Update task with rating and review
+    task.taskerRating = rating;
+    task.taskerReview = review || "";
+    task.taskerReviewedAt = new Date();
+    await task.save();
+
+    // Update tasker's overall rating
+    const tasker = await User.findById(task.createdBy);
+    if (tasker) {
+      const totalRatings = (tasker.taskerTotalRatings || 0) + 1;
+      const currentRating = tasker.taskerRating || 0;
+      const newRating = ((currentRating * (tasker.taskerTotalRatings || 0)) + rating) / totalRatings;
+      
+      tasker.taskerRating = newRating;
+      tasker.taskerTotalRatings = totalRatings;
+      await tasker.save();
     }
 
     res.json({ msg: "Rating submitted successfully", task });

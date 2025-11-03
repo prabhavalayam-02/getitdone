@@ -6,6 +6,7 @@ import Navbar from '@/components/layout/Navbar';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Check, Crown, Zap, Shield, Clock } from 'lucide-react';
+import { getApiUrl } from '@/lib/utils/api-url';
 
 declare global {
   interface Window {
@@ -38,7 +39,7 @@ const SubscriptionPage: React.FC = () => {
   const fetchSubscriptionStatus = async () => {
     try {
       const token = localStorage.getItem('jwt');
-      const response = await fetch('http://localhost:5000/api/subscription/status', {
+      const response = await fetch(getApiUrl('/api/subscription/status'), {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -59,7 +60,7 @@ const SubscriptionPage: React.FC = () => {
       const token = localStorage.getItem('jwt');
       
       // Create order
-      const orderResponse = await fetch('http://localhost:5000/api/subscription/create-order', {
+      const orderResponse = await fetch(getApiUrl('/api/subscription/create-order'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -85,7 +86,7 @@ const SubscriptionPage: React.FC = () => {
         handler: async function (response: any) {
           // Verify payment
           try {
-            const verifyResponse = await fetch('http://localhost:5000/api/subscription/verify-payment', {
+            const verifyResponse = await fetch(getApiUrl('/api/subscription/verify-payment'), {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

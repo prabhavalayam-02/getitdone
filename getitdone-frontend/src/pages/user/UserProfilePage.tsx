@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { User, Upload, Shield, RefreshCw, Save, AlertCircle } from 'lucide-react';
 import { API_BASE_URL } from '@/lib/config';
+import { helperAPI, userAPI } from '@/lib/api';
 
 const UserProfilePage: React.FC = () => {
   const navigate = useNavigate();
@@ -69,31 +70,23 @@ const UserProfilePage: React.FC = () => {
   const handleSaveProfile = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('jwt');
-      const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: userInfo.name,
-          phone: userInfo.phone,
-          address: userInfo.address,
-        }),
+      if (!userId) {
+        throw new Error('User ID not found');
+      }
+
+      await userAPI.updateProfile(userId, {
+        name: userInfo.name,
+        phone: userInfo.phone,
+        address: userInfo.address,
       });
       
-      if (response.ok) {
-        localStorage.setItem('userName', userInfo.name);
-        
-        toast({
-          title: "Profile updated",
-          description: "Your profile information has been saved successfully.",
-        });
-        setEditMode(false);
-      } else {
-        throw new Error('Failed to update profile');
-      }
+      localStorage.setItem('userName', userInfo.name);
+      
+      toast({
+        title: "Profile updated",
+        description: "Your profile information has been saved successfully.",
+      });
+      setEditMode(false);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -117,22 +110,26 @@ const UserProfilePage: React.FC = () => {
 
     setLoading(true);
     try {
-      // Simulate file upload and helper role request
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Apply as helper or reapply (depending on current status)
+      if (userInfo.helperStatus === 'rejected' && userId) {
+        await helperAPI.updateKYC(userId, kycFiles);
+      } else {
+        await helperAPI.applyAsHelper(kycFiles);
+      }
       
       setUserInfo(prev => ({ ...prev, helperStatus: 'pending' }));
       
       toast({
-        title: "KYC documents uploaded",
+        title: "Application submitted",
         description: "Your helper application is now pending review. You'll be notified once approved.",
       });
       
       setKycFiles([]);
-    } catch (error) {
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Upload failed",
-        description: "Failed to upload KYC documents. Please try again.",
+        description: error.message || "Failed to upload KYC documents. Please try again.",
       });
     } finally {
       setLoading(false);

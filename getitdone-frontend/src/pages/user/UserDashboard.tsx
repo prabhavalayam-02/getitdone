@@ -7,6 +7,7 @@ import { tasksAPI } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, List, User, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getApiUrl } from '@/lib/utils/api-url';
 
 const UserDashboard: React.FC = () => {
   const [tasks, setTasks] = useState([]);
@@ -43,7 +44,7 @@ const UserDashboard: React.FC = () => {
   const loadUserProfile = async () => {
     try {
       const token = localStorage.getItem('jwt');
-      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+      const response = await fetch(getApiUrl(`/api/users/${userId}`), {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

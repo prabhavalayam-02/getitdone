@@ -61,6 +61,7 @@ const sendTaskAcceptedEmail = async (task, helper, tasker) => {
             <p><strong>Phone:</strong> ${helper.phone || 'Not provided'}</p>
             <p><strong>Completed Tasks:</strong> ${helper.completedTasks || 0}</p>
             ${helper.rating > 0 ? `<p><strong>Rating:</strong> ⭐ ${helper.rating.toFixed(1)}/5.0 (${helper.totalRatings || 0} reviews)</p>` : '<p><strong>Rating:</strong> New helper (no ratings yet)</p>'}
+            ${helper.rating > 0 ? `<div style="margin-top: 15px;"><a href="${frontendUrl}/reviews/helper/${helper._id}" style="display: inline-block; padding: 10px 20px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 6px; font-size: 14px;">📝 See Ratings and Reviews</a></div>` : ''}
           </div>
           
           <div style="background-color: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -246,6 +247,7 @@ const sendHelperApprovedEmail = async (task, helper, tasker) => {
             <h3 style="margin-top: 0;">Task Owner Contact:</h3>
             <p><strong>Name:</strong> ${tasker.name}</p>
             <p><strong>Email:</strong> ${tasker.email}</p>
+            <p><strong>Phone:</strong> ${tasker.phone || 'Not provided'}</p>
           </div>
           
           <div style="background-color: #d1fae5; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -276,9 +278,148 @@ const sendHelperApprovedEmail = async (task, helper, tasker) => {
   }
 };
 
+/**
+ * Send email when tasker rejects a helper
+ * @param {Object} task - Task object
+ * @param {Object} helper - Helper object
+ * @param {Object} tasker - Tasker (creator) object
+ */
+const sendHelperRejectedEmail = async (task, helper, tasker) => {
+  if (!transporter) {
+    console.log('📧 Email notification skipped (email not configured)');
+    return;
+  }
+  
+  try {
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: helper.email,
+      subject: `Task Request Not Approved: ${task.title}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #ef4444;">Request Not Approved</h2>
+          <p>Hi ${helper.name},</p>
+          <p>Unfortunately, the task owner has decided not to proceed with your request for this task.</p>
+          
+          <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin-top: 0;">Task Details:</h3>
+            <p><strong>Title:</strong> ${task.title}</p>
+            <p><strong>Description:</strong> ${task.description}</p>
+            <p><strong>Budget:</strong> ₹${task.budget}</p>
+            <p><strong>Location:</strong> ${task.location}</p>
+          </div>
+          
+          <div style="background-color: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin-top: 0;">Don't Worry!</h3>
+            <p>There are plenty of other opportunities available. Keep these in mind:</p>
+            <ul style="margin: 10px 0; padding-left: 20px;">
+              <li>The task is now available for other helpers</li>
+              <li>Check out other open tasks that match your skills</li>
+              <li>Building a strong profile with good ratings helps you get approved faster</li>
+            </ul>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.FRONTEND_URL}/helper" style="display: inline-block; background-color: #4f46e5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold;">Browse Available Tasks</a>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+            Best regards,<br/>
+            GetItDone Team
+          </p>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log('Helper rejected email sent successfully');
+  } catch (error) {
+    console.error('Error sending helper rejected email:', error);
+    throw error;
+  }
+};
+
+/**
+ * Send email to helper when task is completed
+ * @param {Object} task - Task object
+ * @param {Object} helper - Helper object
+ * @param {Object} tasker - Tasker (creator) object
+ */
+const sendTaskCompletedEmailToHelper = async (task, helper, tasker) => {
+  if (!transporter) {
+    console.log('📧 Email notification skipped (email not configured)');
+    return;
+  }
+  
+  try {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
+    const rateUrl = `${frontendUrl}/helper/rate-tasker/${task._id}`;
+    
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: helper.email,
+      subject: `Task Completed: ${task.title}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #10b981;">✅ Task Completed!</h2>
+          <p>Congratulations, ${helper.name}! You've successfully completed a task.</p>
+          
+          <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin-top: 0;">Task Details:</h3>
+            <p><strong>Title:</strong> ${task.title}</p>
+            <p><strong>Description:</strong> ${task.description}</p>
+            <p><strong>Budget:</strong> ₹${task.budget}</p>
+            <p><strong>Location:</strong> ${task.location}</p>
+          </div>
+          
+          <div style="background-color: #e0f2fe; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin-top: 0;">Task Owner Information:</h3>
+            <p><strong>Name:</strong> ${tasker.name}</p>
+            <p><strong>Email:</strong> ${tasker.email}</p>
+            <p><strong>Phone:</strong> ${tasker.phone || 'Not provided'}</p>
+          </div>
+          
+          <div style="background-color: #d1fae5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin-top: 0;">💰 Payment</h3>
+            <p>You've earned <strong>₹${task.budget}</strong> for completing this task!</p>
+            <p style="font-size: 14px; color: #6b7280;">Payment will be processed according to your subscription plan.</p>
+          </div>
+          
+          <div style="background-color: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin-top: 0;">📝 Rate the Task Owner</h3>
+            <p>Help us maintain quality! Share your experience working with this task owner.</p>
+            <p><strong>Your feedback will:</strong></p>
+            <ul style="margin: 10px 0; padding-left: 20px;">
+              <li>Help other helpers know what to expect</li>
+              <li>Encourage task owners to provide clear requirements</li>
+              <li>Improve our community</li>
+            </ul>
+            <div style="text-align: center; margin-top: 20px;">
+              <a href="${rateUrl}" style="display: inline-block; padding: 14px 32px; background-color: #f59e0b; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">⭐ Rate Task Owner Now</a>
+            </div>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+            Best regards,<br/>
+            GetItDone Team
+          </p>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log('Task completed email sent to helper successfully');
+  } catch (error) {
+    console.error('Error sending task completed email to helper:', error);
+    throw error;
+  }
+};
+
 module.exports = {
   sendTaskAcceptedEmail,
   sendTaskCompletedEmail,
   sendSubscriptionReminderEmail,
   sendHelperApprovedEmail,
+  sendHelperRejectedEmail,
+  sendTaskCompletedEmailToHelper,
 };

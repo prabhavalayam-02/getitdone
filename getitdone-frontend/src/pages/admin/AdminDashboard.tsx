@@ -270,6 +270,7 @@ const AdminDashboard: React.FC = () => {
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
+                <TableHead>KYC Status</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -280,6 +281,56 @@ const AdminDashboard: React.FC = () => {
                   <TableCell className="font-medium">{helper.name}</TableCell>
                   <TableCell>{helper.email}</TableCell>
                   <TableCell>{helper.phone || 'Not provided'}</TableCell>
+                  <TableCell>
+                    {helper.kycDocs && helper.kycDocs.length > 0 ? (
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-4 w-4 mr-1" />
+                            View KYC ({helper.kycDocs.length})
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-3xl">
+                          <DialogHeader>
+                            <DialogTitle>KYC Documents - {helper.name}</DialogTitle>
+                          </DialogHeader>
+                          <div className="grid gap-4 mt-4">
+                            {helper.kycDocs.map((doc: any, index: number) => {
+                              const docUrl = doc?.url || doc;
+                              if (!docUrl) return null;
+                              
+                              const isImage = typeof docUrl === 'string' && docUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                              
+                              return (
+                                <div key={index} className="border rounded-lg p-4">
+                                  <p className="text-sm text-muted-foreground mb-2">Document {index + 1}</p>
+                                  {isImage ? (
+                                    <img 
+                                      src={docUrl} 
+                                      alt={`KYC Document ${index + 1}`}
+                                      className="w-full h-auto rounded-lg"
+                                    />
+                                  ) : (
+                                    <a 
+                                      href={docUrl} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="flex items-center text-primary hover:underline"
+                                    >
+                                      <FileText className="h-4 w-4 mr-2" />
+                                      View Document
+                                    </a>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    ) : (
+                      <Badge variant="secondary">No KYC</Badge>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Badge className="bg-green-100 text-green-800">Approved</Badge>
                   </TableCell>
@@ -321,6 +372,7 @@ const AdminDashboard: React.FC = () => {
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
+                <TableHead>KYC Status</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -331,6 +383,56 @@ const AdminDashboard: React.FC = () => {
                   <TableCell className="font-medium">{helper.name}</TableCell>
                   <TableCell>{helper.email}</TableCell>
                   <TableCell>{helper.phone || 'Not provided'}</TableCell>
+                  <TableCell>
+                    {helper.kycDocs && helper.kycDocs.length > 0 ? (
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-4 w-4 mr-1" />
+                            View KYC ({helper.kycDocs.length})
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-3xl">
+                          <DialogHeader>
+                            <DialogTitle>KYC Documents - {helper.name}</DialogTitle>
+                          </DialogHeader>
+                          <div className="grid gap-4 mt-4">
+                            {helper.kycDocs.map((doc: any, index: number) => {
+                              const docUrl = doc?.url || doc;
+                              if (!docUrl) return null;
+                              
+                              const isImage = typeof docUrl === 'string' && docUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                              
+                              return (
+                                <div key={index} className="border rounded-lg p-4">
+                                  <p className="text-sm text-muted-foreground mb-2">Document {index + 1}</p>
+                                  {isImage ? (
+                                    <img 
+                                      src={docUrl} 
+                                      alt={`KYC Document ${index + 1}`}
+                                      className="w-full h-auto rounded-lg"
+                                    />
+                                  ) : (
+                                    <a 
+                                      href={docUrl} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="flex items-center text-primary hover:underline"
+                                    >
+                                      <FileText className="h-4 w-4 mr-2" />
+                                      View Document
+                                    </a>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    ) : (
+                      <Badge variant="secondary">No KYC</Badge>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Badge className="bg-red-100 text-red-800">Rejected</Badge>
                   </TableCell>

@@ -11,6 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, Upload, Shield, RefreshCw, Save, Star, IndianRupee, CheckCircle, AlertCircle, CreditCard } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { userAPI } from '@/lib/api';
+import { getApiUrl } from '@/lib/utils/api-url';
 
 const HelperProfilePage: React.FC = () => {
   const navigate = useNavigate();
@@ -44,7 +46,7 @@ const HelperProfilePage: React.FC = () => {
       const userId = localStorage.getItem('userId');
       const token = localStorage.getItem('jwt');
       
-      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+      const response = await fetch(getApiUrl(`/api/users/${userId}`), {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -83,8 +85,18 @@ const HelperProfilePage: React.FC = () => {
   const handleSaveProfile = async () => {
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        throw new Error('User ID not found');
+      }
+
+      await userAPI.updateProfile(userId, {
+        name: helperInfo.name,
+        phone: helperInfo.phone,
+        address: helperInfo.address,
+        bio: helperInfo.bio,
+        skills: helperInfo.skills,
+      });
       
       localStorage.setItem('userName', helperInfo.name);
       
@@ -134,7 +146,7 @@ const HelperProfilePage: React.FC = () => {
         formData.append('kycDocs', file);
       });
 
-      const response = await fetch(`http://localhost:5000/api/helpers/${userId}/kyc`, {
+      const response = await fetch(getApiUrl(`/api/helpers/${userId}/kyc`), {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,

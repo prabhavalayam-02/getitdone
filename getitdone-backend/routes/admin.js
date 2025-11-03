@@ -15,7 +15,8 @@ router.get("/helpers/pending", auth, async (req, res) => {
       return res.status(403).json({ msg: "Only admins can view pending helpers" });
     }
 
-    const helpers = await User.find({ role: "helper", helperStatus: "pending" }).select(
+    // Filter by helperStatus only, not role, so users who apply through profile also appear
+    const helpers = await User.find({ helperStatus: "pending" }).select(
       "-password"
     );
 
@@ -37,8 +38,14 @@ router.get("/helpers", auth, async (req, res) => {
     }
 
     const { status } = req.query;
-    const filter = { role: "helper" };
-    if (status) filter.helperStatus = status;
+    const filter = {};
+    // Filter by helperStatus, not role, to include users who applied through profile
+    if (status) {
+      filter.helperStatus = status;
+    } else {
+      // If no status specified, get all users with any helperStatus (pending, approved, or rejected)
+      filter.helperStatus = { $in: ["pending", "approved", "rejected"] };
+    }
 
     const helpers = await User.find(filter).select("-password");
 
