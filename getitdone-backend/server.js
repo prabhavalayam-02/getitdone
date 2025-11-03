@@ -16,6 +16,10 @@ const reviewsRoutes = require("./routes/reviews");
 
 const app = express();
 
+// ===== Trust Proxy (Required for Render, Heroku, etc.) =====
+// This allows rate limiter and other middleware to work correctly behind a proxy
+app.set('trust proxy', 1);
+
 // ===== Middleware =====
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

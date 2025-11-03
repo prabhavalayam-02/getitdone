@@ -10,28 +10,45 @@ try {
   console.log('EMAIL_PASSWORD present:', !!process.env.EMAIL_PASSWORD);
   
   if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+    // Use direct SMTP configuration for better compatibility with cloud servers
     transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT) || 587,
+      secure: process.env.SMTP_SECURE === 'true' ? true : false, // true for 465, false for 587
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD,
       },
-      // Add timeout and connection options
+      // Add timeout and connection options to prevent hanging
+      connectionTimeout: 10000, // 10 seconds
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
       pool: false, // Disable pooling for better error handling
       maxConnections: 1,
       rateDelta: 20000,
       rateLimit: 5,
+      tls: {
+        rejectUnauthorized: false // Accept self-signed certificates (for cloud servers)
+      }
     });
     
     console.log('✅ Email service configured');
     console.log('📧 Email User:', process.env.EMAIL_USER);
     console.log('🔐 Email Password length:', process.env.EMAIL_PASSWORD?.length);
     
-    // Test connection (don't await, just log results)
+    // Test connection with timeout (don't await, just log results)
+    const verificationTimeout = setTimeout(() => {
+      console.warn('⚠️  Email verification taking longer than expected. Will continue anyway...');
+    }, 5000);
+    
     transporter.verify((error, success) => {
+      clearTimeout(verificationTimeout);
       if (error) {
         console.error('❌ Email service verification failed:', error.message);
+        console.error('⚠️  Email service may not work, but API will continue');
+        console.error('💡 Tip: Gmail often blocks cloud servers. Consider using SendGrid or Mailgun');
         emailConfigError = error.message;
+        // Don't set transporter to null - let it try to send anyway
       } else {
         console.log('✅ Email service verified and ready');
       }
