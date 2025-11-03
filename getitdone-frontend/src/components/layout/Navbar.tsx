@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/enhanced-button';
-import { LogOut, User, Settings, Home, Plus, List } from 'lucide-react';
+import { LogOut, User, Settings, Home, Plus, List, Menu, X } from 'lucide-react';
 
 interface NavbarProps {
   role?: 'user' | 'helper' | 'admin' | null;
@@ -10,10 +10,14 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ role }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const handleLogout = () => {
     localStorage.removeItem('jwt');
     localStorage.removeItem('userRole');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userName');
+    setMobileMenuOpen(false);
     navigate('/');
   };
 
@@ -78,7 +82,8 @@ const Navbar: React.FC<NavbarProps> = ({ role }) => {
           <span className="font-bold text-xl text-primary">GetItDone</span>
         </Link>
         
-        <div className="flex items-center space-x-6">
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center space-x-4">
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -92,17 +97,60 @@ const Navbar: React.FC<NavbarProps> = ({ role }) => {
                 }`}
               >
                 <Icon className="h-4 w-4" />
-                <span className="hidden md:inline">{item.name}</span>
+                <span>{item.name}</span>
               </Link>
             );
           })}
           
           <Button variant="ghost" size="sm" onClick={handleLogout}>
             <LogOut className="h-4 w-4 mr-2" />
-            <span className="hidden md:inline">Logout</span>
+            <span>Logout</span>
           </Button>
         </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          className="md:hidden p-2 text-foreground hover:bg-muted rounded-md transition-fast"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
       </div>
+
+      {/* Mobile Navigation */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t bg-background">
+          <div className="container mx-auto px-4 py-4 space-y-2">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-md transition-fast ${
+                    isActive(item.path) 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'text-foreground hover:bg-muted'
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="font-medium">{item.name}</span>
+                </Link>
+              );
+            })}
+            
+            <button
+              onClick={handleLogout}
+              className="flex items-center space-x-3 px-4 py-3 rounded-md text-foreground hover:bg-muted transition-fast w-full"
+            >
+              <LogOut className="h-5 w-5" />
+              <span className="font-medium">Logout</span>
+            </button>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

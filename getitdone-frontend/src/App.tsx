@@ -12,10 +12,14 @@ import UserDashboard from "./pages/user/UserDashboard";
 import CreateTaskPage from "./pages/user/CreateTaskPage";
 import MyTasksPage from "./pages/user/MyTasksPage";
 import UserProfilePage from "./pages/user/UserProfilePage";
+import ApproveHelperPage from "./pages/user/ApproveHelperPage";
+import RejectHelperPage from "./pages/user/RejectHelperPage";
+import RateTaskPage from "./pages/user/RateTaskPage";
 import HelperDashboard from "./pages/helper/HelperDashboard";
 import AvailableTasksPage from "./pages/helper/AvailableTasksPage";
 import HelperMyTasksPage from "./pages/helper/HelperMyTasksPage";
 import HelperProfilePage from "./pages/helper/HelperProfilePage";
+import SubscriptionPage from "./pages/helper/SubscriptionPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
@@ -40,12 +44,16 @@ const App = () => (
           <Route path="/user/create-task" element={<CreateTaskPage />} />
           <Route path="/user/my-tasks" element={<MyTasksPage />} />
           <Route path="/user/profile" element={<UserProfilePage />} />
+          <Route path="/user/approve-helper/:taskId" element={<ApproveHelperPage />} />
+          <Route path="/user/reject-helper/:taskId" element={<RejectHelperPage />} />
+          <Route path="/user/rate-task/:taskId" element={<RateTaskPage />} />
           
           {/* Helper Routes */}
           <Route path="/helper" element={<HelperDashboard />} />
           <Route path="/helper/available-tasks" element={<AvailableTasksPage />} />
           <Route path="/helper/my-tasks" element={<HelperMyTasksPage />} />
           <Route path="/helper/profile" element={<HelperProfilePage />} />
+          <Route path="/helper/subscription" element={<SubscriptionPage />} />
           
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminDashboard />} />

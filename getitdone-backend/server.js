@@ -11,6 +11,7 @@ const taskRoutes = require("./routes/tasks");
 const adminRoutes = require("./routes/admin");
 const helperRoutes = require("./routes/helpers");
 const userRoutes = require("./routes/users");
+const subscriptionRoutes = require("./routes/subscription");
 
 const app = express();
 
@@ -103,6 +104,7 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/helpers", helperRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/subscription", subscriptionRoutes);
 
 // ===== Connect to MongoDB =====
 

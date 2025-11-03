@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/enhanced-button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Calendar, DollarSign, User, Trash2, Play, CheckCircle } from 'lucide-react';
+import { MapPin, Calendar, IndianRupee, User, Trash2, Play, CheckCircle } from 'lucide-react';
 
 export interface Task {
   _id: string;
@@ -13,7 +13,7 @@ export interface Task {
   budget: number;
   category: string;
   date: string;
-  status: 'open' | 'accepted' | 'in-progress' | 'completed';
+  status: 'open' | 'pending-approval' | 'in-progress' | 'completed' | 'cancelled';
   createdBy?: { _id: string; name: string; email: string } | string;
   acceptedBy?: { _id: string; name: string; email: string } | string;
 }
@@ -23,8 +23,9 @@ interface TaskCardProps {
   userRole: 'user' | 'helper' | 'admin';
   onDelete?: (taskId: string) => void;
   onAccept?: (taskId: string) => void;
-  onStart?: (taskId: string) => void;
   onComplete?: (taskId: string) => void;
+  onApprove?: (taskId: string) => void;
+  onReject?: (taskId: string) => void;
   showActions?: boolean;
 }
 
@@ -33,20 +34,23 @@ const TaskCard: React.FC<TaskCardProps> = ({
   userRole,
   onDelete,
   onAccept,
-  onStart,
   onComplete,
+  onApprove,
+  onReject,
   showActions = true,
 }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'open':
         return 'bg-blue-100 text-blue-800';
-      case 'accepted':
+      case 'pending-approval':
         return 'bg-yellow-100 text-yellow-800';
       case 'in-progress':
         return 'bg-orange-100 text-orange-800';
       case 'completed':
         return 'bg-green-100 text-green-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -57,16 +61,39 @@ const TaskCard: React.FC<TaskCardProps> = ({
 
     switch (userRole) {
       case 'user':
-        return task.status === 'open' ? (
-          <Button 
-            variant="destructive" 
-            size="sm" 
-            onClick={() => onDelete?.(task._id || task.id!)}
-          >
-            <Trash2 className="h-4 w-4 mr-1" />
-            Delete
-          </Button>
-        ) : null;
+        if (task.status === 'pending-approval') {
+          return (
+            <div className="flex gap-2">
+              <Button 
+                variant="success" 
+                size="sm" 
+                onClick={() => onApprove?.(task._id || task.id!)}
+              >
+                <CheckCircle className="h-4 w-4 mr-1" />
+                Approve Helper
+              </Button>
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                onClick={() => onReject?.(task._id || task.id!)}
+              >
+                Reject
+              </Button>
+            </div>
+          );
+        } else if (task.status === 'open') {
+          return (
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              onClick={() => onDelete?.(task._id || task.id!)}
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete
+            </Button>
+          );
+        }
+        return null;
         
       case 'helper':
         if (task.status === 'open') {
@@ -79,16 +106,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
               Accept Task
             </Button>
           );
-        } else if (task.status === 'accepted') {
+        } else if (task.status === 'pending-approval') {
           return (
-            <Button 
-              variant="success" 
-              size="sm" 
-              onClick={() => onStart?.(task._id || task.id!)}
-            >
-              <Play className="h-4 w-4 mr-1" />
-              Start Task
-            </Button>
+            <Badge className="bg-yellow-100 text-yellow-800">
+              Awaiting Approval
+            </Badge>
           );
         } else if (task.status === 'in-progress') {
           return (
@@ -147,8 +169,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
             {new Date(task.date).toLocaleDateString()}
           </div>
           <div className="flex items-center text-muted-foreground">
-            <DollarSign className="h-4 w-4 mr-2" />
-            ${task.budget}
+            <IndianRupee className="h-4 w-4 mr-2" />
+            ₹{task.budget}
           </div>
           <div className="flex items-center text-muted-foreground">
             <User className="h-4 w-4 mr-2" />

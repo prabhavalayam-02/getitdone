@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Navbar from '@/components/layout/Navbar';
 import TaskCard from '@/components/ui/TaskCard';
+import RatingDialog from '@/components/ui/RatingDialog';
 import { tasksAPI } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Search, Filter } from 'lucide-react';
@@ -16,6 +17,8 @@ const MyTasksPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
   const { toast } = useToast();
   const userName = localStorage.getItem('userName') || 'User';
 
@@ -79,11 +82,107 @@ const MyTasksPage: React.FC = () => {
     }
   };
 
+  const handleRateTask = (task: any) => {
+    setSelectedTask(task);
+    setRatingDialogOpen(true);
+  };
+
+  const handleSubmitRating = async (rating: number, review: string) => {
+    if (!selectedTask) return;
+
+    try {
+      const token = localStorage.getItem('jwt');
+      const response = await fetch(`http://localhost:5000/api/tasks/${selectedTask._id || selectedTask.id}/rate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ rating, review }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit rating');
+      }
+
+      toast({
+        title: "Rating Submitted",
+        description: "Thank you for your feedback!",
+      });
+
+      // Reload tasks to reflect the rating
+      await loadTasks();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to submit rating. Please try again.",
+      });
+      throw error;
+    }
+  };
+
+  const handleApproveHelper = async (taskId: string) => {
+    try {
+      const token = localStorage.getItem('jwt');
+      const response = await fetch(`http://localhost:5000/api/tasks/${taskId}/approve-helper`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Helper Approved",
+          description: "The helper has been notified and the task has started.",
+        });
+        await loadTasks();
+      } else {
+        throw new Error('Failed to approve helper');
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to approve helper. Please try again.",
+      });
+    }
+  };
+
+  const handleRejectHelper = async (taskId: string) => {
+    try {
+      const token = localStorage.getItem('jwt');
+      const response = await fetch(`http://localhost:5000/api/tasks/${taskId}/reject-helper`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Helper Rejected",
+          description: "The task is now available for other helpers.",
+        });
+        await loadTasks();
+      } else {
+        throw new Error('Failed to reject helper');
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to reject helper. Please try again.",
+      });
+    }
+  };
+
   const getStatusCounts = () => {
     return {
       all: tasks.length,
       open: tasks.filter(task => task.status === 'open').length,
-      accepted: tasks.filter(task => task.status === 'accepted').length,
+      'pending-approval': tasks.filter(task => task.status === 'pending-approval').length,
       'in-progress': tasks.filter(task => task.status === 'in-progress').length,
       completed: tasks.filter(task => task.status === 'completed').length,
     };
@@ -149,7 +248,7 @@ const MyTasksPage: React.FC = () => {
                   <SelectContent>
                     <SelectItem value="all">All Tasks ({statusCounts.all})</SelectItem>
                     <SelectItem value="open">Open ({statusCounts.open})</SelectItem>
-                    <SelectItem value="accepted">Accepted ({statusCounts.accepted})</SelectItem>
+                    <SelectItem value="pending-approval">Awaiting Approval ({statusCounts['pending-approval']})</SelectItem>
                     <SelectItem value="in-progress">In Progress ({statusCounts['in-progress']})</SelectItem>
                     <SelectItem value="completed">Completed ({statusCounts.completed})</SelectItem>
                   </SelectContent>
@@ -200,6 +299,8 @@ const MyTasksPage: React.FC = () => {
                   task={task}
                   userRole="user"
                   onDelete={handleDeleteTask}
+                  onApprove={handleApproveHelper}
+                  onReject={handleRejectHelper}
                 />
               ))}
             </div>
@@ -223,8 +324,8 @@ const MyTasksPage: React.FC = () => {
                   <p className="text-sm text-muted-foreground">Open</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-yellow-600">{statusCounts.accepted}</p>
-                  <p className="text-sm text-muted-foreground">Accepted</p>
+                  <p className="text-2xl font-bold text-yellow-600">{statusCounts['pending-approval']}</p>
+                  <p className="text-sm text-muted-foreground">Awaiting Approval</p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-orange-600">{statusCounts['in-progress']}</p>
@@ -239,6 +340,17 @@ const MyTasksPage: React.FC = () => {
           </Card>
         )}
       </div>
+
+      {/* Rating Dialog */}
+      {selectedTask && (
+        <RatingDialog
+          open={ratingDialogOpen}
+          onClose={() => setRatingDialogOpen(false)}
+          onSubmit={handleSubmitRating}
+          taskTitle={selectedTask.title}
+          helperName={selectedTask.acceptedBy?.name}
+        />
+      )}
     </div>
   );
 };

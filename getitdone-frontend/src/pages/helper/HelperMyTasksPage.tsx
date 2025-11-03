@@ -49,22 +49,6 @@ const HelperMyTasksPage: React.FC = () => {
     setFilteredTasks(filtered);
   };
 
-  const handleStartTask = async (taskId: string) => {
-    try {
-      await tasksAPI.startTask(taskId);
-      await loadTasks();
-      toast({
-        title: "Task started",
-        description: "Task status updated to in progress. Good luck!",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to start task",
-      });
-    }
-  };
 
   const handleCompleteTask = async (taskId: string) => {
     try {
@@ -74,19 +58,28 @@ const HelperMyTasksPage: React.FC = () => {
         title: "Task completed",
         description: "Congratulations! The task has been marked as completed.",
       });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to complete task",
-      });
+    } catch (error: any) {
+      // Check if subscription is required
+      if (error.response?.data?.requiresSubscription) {
+        toast({
+          variant: "destructive",
+          title: "Subscription Required",
+          description: error.response.data.msg || "Please subscribe to continue accepting tasks.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to complete task",
+        });
+      }
     }
   };
 
   const getStatusCounts = () => {
     return {
       all: tasks.length,
-      accepted: tasks.filter(task => task.status === 'accepted').length,
+      'pending-approval': tasks.filter(task => task.status === 'pending-approval').length,
       'in-progress': tasks.filter(task => task.status === 'in-progress').length,
       completed: tasks.filter(task => task.status === 'completed').length,
     };
@@ -188,7 +181,7 @@ const HelperMyTasksPage: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Tasks ({statusCounts.all})</SelectItem>
-                  <SelectItem value="accepted">Accepted ({statusCounts.accepted})</SelectItem>
+                  <SelectItem value="pending-approval">Awaiting Approval ({statusCounts['pending-approval']})</SelectItem>
                   <SelectItem value="in-progress">In Progress ({statusCounts['in-progress']})</SelectItem>
                   <SelectItem value="completed">Completed ({statusCounts.completed})</SelectItem>
                 </SelectContent>
@@ -240,7 +233,6 @@ const HelperMyTasksPage: React.FC = () => {
                   key={task._id || task.id}
                   task={task}
                   userRole="helper"
-                  onStart={handleStartTask}
                   onComplete={handleCompleteTask}
                 />
               ))}
@@ -267,12 +259,12 @@ const HelperMyTasksPage: React.FC = () => {
                   <p className="text-sm text-muted-foreground">Completion Rate</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-primary">${getTotalEarnings()}</p>
+                  <p className="text-2xl font-bold text-primary">₹{getTotalEarnings()}</p>
                   <p className="text-sm text-muted-foreground">Total Earned</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-blue-600">
-                    ${statusCounts.completed > 0 ? Math.round(getTotalEarnings() / statusCounts.completed) : 0}
+                    ₹{statusCounts.completed > 0 ? Math.round(getTotalEarnings() / statusCounts.completed) : 0}
                   </p>
                   <p className="text-sm text-muted-foreground">Avg per Task</p>
                 </div>

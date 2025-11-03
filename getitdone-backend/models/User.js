@@ -27,6 +27,29 @@ const UserSchema = new mongoose.Schema(
         url: { type: String },
       },
     ],
+    bio: { type: String },
+    skills: [{ type: String }],
+    
+    // Helper stats
+    completedTasks: { type: Number, default: 0 },
+    totalEarnings: { type: Number, default: 0 },
+    rating: { type: Number, default: 0 },
+    totalRatings: { type: Number, default: 0 },
+    
+    // Subscription fields for helpers
+    subscription: {
+      status: {
+        type: String,
+        enum: ["none", "trial", "active", "expired"],
+        default: "none"
+      },
+      trialTasksCompleted: { type: Number, default: 0 },
+      trialTasksLimit: { type: Number, default: 5 },
+      plan: { type: String }, // e.g., "monthly", "yearly"
+      startDate: { type: Date },
+      endDate: { type: Date },
+      paymentId: { type: String }
+    },
   },
   { timestamps: true }
 );

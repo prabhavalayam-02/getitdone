@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '::',  // Listen on all network interfaces
       port: 8080,
-      strictPort: true,
+      strictPort: false,
       open: false,  // Don't open browser automatically
       cors: true,
     },

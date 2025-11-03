@@ -6,7 +6,7 @@ import Navbar from '@/components/layout/Navbar';
 import TaskCard from '@/components/ui/TaskCard';
 import { tasksAPI } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
-import { Search, AlertCircle, CheckCircle, Clock, DollarSign } from 'lucide-react';
+import { Search, AlertCircle, CheckCircle, Clock, IndianRupee } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const HelperDashboard: React.FC = () => {
@@ -246,16 +246,16 @@ const HelperDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Earned</p>
-                  <p className="text-2xl font-bold text-primary">${stats.totalEarnings}</p>
+                  <p className="text-2xl font-bold text-primary">₹{stats.totalEarnings}</p>
                 </div>
-                <DollarSign className="h-8 w-8 text-primary" />
+                <IndianRupee className="h-8 w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Link to="/helper/available-tasks">
             <Card className="hover:shadow-soft transition-smooth cursor-pointer group animate-fade-in">
               <CardContent className="p-6">
@@ -264,8 +264,8 @@ const HelperDashboard: React.FC = () => {
                     <Search className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">Browse Available Tasks</h3>
-                    <p className="text-sm text-muted-foreground">Find new tasks to work on and earn money</p>
+                    <h3 className="font-semibold text-foreground">Browse Tasks</h3>
+                    <p className="text-sm text-muted-foreground">Find new tasks to work on</p>
                   </div>
                 </div>
               </CardContent>
@@ -280,8 +280,24 @@ const HelperDashboard: React.FC = () => {
                     <CheckCircle className="h-6 w-6 text-accent" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">My Accepted Tasks</h3>
-                    <p className="text-sm text-muted-foreground">Manage and update your current tasks</p>
+                    <h3 className="font-semibold text-foreground">My Tasks</h3>
+                    <p className="text-sm text-muted-foreground">Manage your tasks</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link to="/helper/subscription">
+            <Card className="hover:shadow-soft transition-smooth cursor-pointer group animate-fade-in bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center group-hover:bg-blue-500/20 transition-smooth">
+                    <IndianRupee className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">Subscription</h3>
+                    <p className="text-sm text-muted-foreground">Upgrade your plan</p>
                   </div>
                 </div>
               </CardContent>

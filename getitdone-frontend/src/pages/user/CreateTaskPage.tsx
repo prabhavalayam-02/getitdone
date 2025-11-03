@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Navbar from '@/components/layout/Navbar';
 import { tasksAPI } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, MapPin, Calendar, DollarSign, Tag } from 'lucide-react';
+import { Loader2, MapPin, Calendar, IndianRupee, Tag } from 'lucide-react';
 
 const CreateTaskPage: React.FC = () => {
   const navigate = useNavigate();
@@ -165,8 +165,8 @@ const CreateTaskPage: React.FC = () => {
                   
                   <div>
                     <Label htmlFor="budget" className="flex items-center">
-                      <DollarSign className="h-4 w-4 mr-2" />
-                      Budget (USD) *
+                      <IndianRupee className="h-4 w-4 mr-2" />
+                      Budget (INR) *
                     </Label>
                     <Input
                       id="budget"

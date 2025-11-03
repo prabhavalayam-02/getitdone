@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/enhanced-button';
 import { Input } from '@/components/ui/input';
@@ -14,8 +14,8 @@ import { User, Upload, Shield, RefreshCw, Save, AlertCircle } from 'lucide-react
 const UserProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const userId = localStorage.getItem('userId');
   
-  // Mock user data - in real app this would come from API
   const [userInfo, setUserInfo] = useState({
     name: localStorage.getItem('userName') || 'John Doe',
     email: 'user@test.com',
@@ -27,7 +27,39 @@ const UserProfilePage: React.FC = () => {
   
   const [kycFiles, setKycFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const token = localStorage.getItem('jwt');
+      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUserInfo({
+          name: data.name || '',
+          email: data.email || '',
+          phone: data.phone || '',
+          address: data.address || '',
+          role: data.role || 'user',
+          helperStatus: data.helperStatus || null,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch user data:', error);
+    } finally {
+      setDataLoading(false);
+    }
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setUserInfo(prev => ({ ...prev, [field]: value }));
@@ -36,16 +68,31 @@ const UserProfilePage: React.FC = () => {
   const handleSaveProfile = async () => {
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      localStorage.setItem('userName', userInfo.name);
-      
-      toast({
-        title: "Profile updated",
-        description: "Your profile information has been saved successfully.",
+      const token = localStorage.getItem('jwt');
+      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: userInfo.name,
+          phone: userInfo.phone,
+          address: userInfo.address,
+        }),
       });
-      setEditMode(false);
+      
+      if (response.ok) {
+        localStorage.setItem('userName', userInfo.name);
+        
+        toast({
+          title: "Profile updated",
+          description: "Your profile information has been saved successfully.",
+        });
+        setEditMode(false);
+      } else {
+        throw new Error('Failed to update profile');
+      }
     } catch (error) {
       toast({
         variant: "destructive",
@@ -329,9 +376,6 @@ const UserProfilePage: React.FC = () => {
                 </Button>
                 <Button variant="outline">
                   Download My Data
-                </Button>
-                <Button variant="destructive">
-                  Delete Account
                 </Button>
               </div>
             </CardContent>

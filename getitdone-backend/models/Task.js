@@ -53,7 +53,7 @@ const TaskSchema = new mongoose.Schema(
     // task status
     status: {
       type: String,
-      enum: ["open", "accepted", "in-progress", "completed", "cancelled"],
+      enum: ["open", "pending-approval", "in-progress", "completed", "cancelled"],
       default: "open",
     },
 
@@ -64,6 +64,11 @@ const TaskSchema = new mongoose.Schema(
         changedAt: { type: Date, default: Date.now },
       },
     ],
+    
+    // Rating and review from tasker (user) to helper
+    rating: { type: Number, min: 1, max: 5 },
+    review: { type: String },
+    reviewedAt: { type: Date },
   },
   { timestamps: true }
 );

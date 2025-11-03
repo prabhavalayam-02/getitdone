@@ -168,7 +168,7 @@ const LandingPage: React.FC = () => {
               </Button>
             </Link>
             <Link to="/auth/signup?role=helper">
-              <Button variant="outline" size="xl" className="w-full sm:w-auto border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
+              <Button variant="secondary" size="xl" className="w-full sm:w-auto">
                 I Want to Help Others
               </Button>
             </Link>

@@ -14,6 +14,7 @@ const AvailableTasksPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [locationFilter, setLocationFilter] = useState('all');
   const [helperStatus] = useState<'approved' | 'pending'>(
     (localStorage.getItem('helperStatus') as 'approved' | 'pending') || 'pending'
   );
@@ -26,11 +27,15 @@ const AvailableTasksPage: React.FC = () => {
 
   useEffect(() => {
     filterTasks();
-  }, [tasks, searchQuery, categoryFilter]);
+  }, [tasks, searchQuery, categoryFilter, locationFilter]);
 
   const loadTasks = async () => {
     try {
-      const availableTasks = await tasksAPI.getTasks({ status: 'open' });
+      // Load all tasks and filter for open and pending-approval
+      const allTasks = await tasksAPI.getTasks();
+      const availableTasks = allTasks.filter(task => 
+        task.status === 'open' || task.status === 'pending-approval'
+      );
       setTasks(availableTasks);
     } catch (error) {
       toast({
@@ -58,6 +63,13 @@ const AvailableTasksPage: React.FC = () => {
     // Filter by category
     if (categoryFilter !== 'all') {
       filtered = filtered.filter(task => task.category === categoryFilter);
+    }
+
+    // Filter by location
+    if (locationFilter !== 'all') {
+      filtered = filtered.filter(task => 
+        task.location.toLowerCase().includes(locationFilter.toLowerCase())
+      );
     }
 
     setFilteredTasks(filtered);
@@ -90,6 +102,7 @@ const AvailableTasksPage: React.FC = () => {
   };
 
   const categories = Array.from(new Set(tasks.map(task => task.category))).sort();
+  const locations = Array.from(new Set(tasks.map(task => task.location))).sort();
 
   if (loading) {
     return (
@@ -137,7 +150,7 @@ const AvailableTasksPage: React.FC = () => {
         {/* Filters */}
         <Card className="mb-6 animate-fade-in">
           <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex flex-col gap-4">
               <div className="flex-1">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -149,17 +162,31 @@ const AvailableTasksPage: React.FC = () => {
                   />
                 </div>
               </div>
-              <div className="w-full md:w-48">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                   <SelectTrigger>
                     <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue />
+                    <SelectValue placeholder="Filter by category" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories ({tasks.length})</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category} value={category}>
                         {category} ({tasks.filter(task => task.category === category).length})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={locationFilter} onValueChange={setLocationFilter}>
+                  <SelectTrigger>
+                    <Filter className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="Filter by location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Locations ({tasks.length})</SelectItem>
+                    {locations.map((location) => (
+                      <SelectItem key={location} value={location}>
+                        {location} ({tasks.filter(task => task.location === location).length})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -190,7 +217,7 @@ const AvailableTasksPage: React.FC = () => {
                       Try adjusting your search or filter criteria.
                     </p>
                     <button
-                      onClick={() => { setSearchQuery(''); setCategoryFilter('all'); }}
+                      onClick={() => { setSearchQuery(''); setCategoryFilter('all'); setLocationFilter('all'); }}
                       className="text-primary hover:underline"
                     >
                       Clear all filters
@@ -227,13 +254,13 @@ const AvailableTasksPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-primary">
-                    ${tasks.reduce((sum, task) => sum + task.budget, 0)}
+                    ₹{tasks.reduce((sum, task) => sum + task.budget, 0)}
                   </p>
                   <p className="text-sm text-muted-foreground">Total Value</p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-green-600">
-                    ${Math.round(tasks.reduce((sum, task) => sum + task.budget, 0) / tasks.length)}
+                    ₹{Math.round(tasks.reduce((sum, task) => sum + task.budget, 0) / tasks.length)}
                   </p>
                   <p className="text-sm text-muted-foreground">Average Budget</p>
                 </div>

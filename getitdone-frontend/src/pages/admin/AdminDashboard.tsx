@@ -396,7 +396,7 @@ const AdminDashboard: React.FC = () => {
                       ? task.acceptedBy.name
                       : task.acceptedBy || 'Not assigned'}
                   </TableCell>
-                  <TableCell>${task.budget}</TableCell>
+                  <TableCell>₹{task.budget}</TableCell>
                   <TableCell>
                     <Button
                       size="sm"

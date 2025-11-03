@@ -11,16 +11,23 @@ import { Link } from 'react-router-dom';
 const UserDashboard: React.FC = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userStats, setUserStats] = useState({
+    totalSpent: 0,
+    email: '',
+    phone: ''
+  });
   const { toast } = useToast();
   const userName = localStorage.getItem('userName') || 'User';
+  const userId = localStorage.getItem('userId');
 
   useEffect(() => {
     loadTasks();
+    loadUserProfile();
   }, []);
 
   const loadTasks = async () => {
     try {
-      const userTasks = await tasksAPI.getTasks({ createdBy: userName });
+      const userTasks = await tasksAPI.getTasks({ createdBy: userId });
       setTasks(userTasks);
     } catch (error) {
       toast({
@@ -30,6 +37,28 @@ const UserDashboard: React.FC = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadUserProfile = async () => {
+    try {
+      const token = localStorage.getItem('jwt');
+      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (response.ok) {
+        const userData = await response.json();
+        setUserStats({
+          totalSpent: userData.totalSpent || 0,
+          email: userData.email || '',
+          phone: userData.phone || ''
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch user profile:', error);
     }
   };
 
@@ -54,8 +83,9 @@ const UserDashboard: React.FC = () => {
     const open = tasks.filter(task => task.status === 'open').length;
     const inProgress = tasks.filter(task => task.status === 'accepted' || task.status === 'in-progress').length;
     const completed = tasks.filter(task => task.status === 'completed').length;
+    const totalSpent = tasks.filter(task => task.status === 'completed').reduce((sum, task) => sum + (task.budget || 0), 0);
     
-    return { open, inProgress, completed, total: tasks.length };
+    return { open, inProgress, completed, total: tasks.length, totalSpent };
   };
 
   const stats = getTaskStats();

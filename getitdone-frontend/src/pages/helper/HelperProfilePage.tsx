@@ -8,8 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import Navbar from '@/components/layout/Navbar';
 import FileUploader from '@/components/ui/FileUploader';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
-import { User, Upload, Shield, RefreshCw, Save, Star, DollarSign, CheckCircle, AlertCircle } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { User, Upload, Shield, RefreshCw, Save, Star, IndianRupee, CheckCircle, AlertCircle, CreditCard } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const HelperProfilePage: React.FC = () => {
@@ -200,11 +200,19 @@ const HelperProfilePage: React.FC = () => {
       
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
-          <div className="mb-8 animate-fade-in">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Helper Profile</h1>
-            <p className="text-muted-foreground">
-              Manage your helper profile, skills, and documents.
-            </p>
+          <div className="mb-8 animate-fade-in flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Helper Profile</h1>
+              <p className="text-muted-foreground">
+                Manage your helper profile, skills, and documents.
+              </p>
+            </div>
+            <Link to="/helper/subscription">
+              <Button variant="hero" className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4" />
+                Manage Subscription
+              </Button>
+            </Link>
           </div>
 
           {/* Stats Cards */}
@@ -238,9 +246,9 @@ const HelperProfilePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Total Earned</p>
-                    <p className="text-2xl font-bold text-foreground">${helperInfo.totalEarnings}</p>
+                    <p className="text-2xl font-bold text-foreground">₹{helperInfo.totalEarnings}</p>
                   </div>
-                  <DollarSign className="h-8 w-8 text-primary" />
+                  <IndianRupee className="h-8 w-8 text-primary" />
                 </div>
               </CardContent>
             </Card>
@@ -447,6 +455,39 @@ const HelperProfilePage: React.FC = () => {
                 </CardContent>
               </Card>
 
+              {/* Subscription Status */}
+              <Card className="animate-fade-in bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CreditCard className="h-5 w-5 text-blue-600" />
+                    Subscription
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Current Plan</p>
+                    <Badge className="bg-blue-100 text-blue-800">Free Trial</Badge>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Complete up to 5 tasks for free
+                    </p>
+                  </div>
+                  
+                  <div className="bg-white/50 rounded-lg p-3 border border-blue-100">
+                    <p className="text-sm font-semibold text-foreground mb-1">
+                      Unlock unlimited tasks!
+                    </p>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Upgrade to premium and earn without limits
+                    </p>
+                    <Link to="/helper/subscription">
+                      <Button variant="hero" size="sm" className="w-full">
+                        View Plans
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Role Switching */}
               <Card className="animate-fade-in">
                 <CardHeader>
@@ -478,9 +519,6 @@ const HelperProfilePage: React.FC = () => {
                   </Button>
                   <Button variant="outline" className="w-full justify-start">
                     Privacy Settings
-                  </Button>
-                  <Button variant="destructive" className="w-full justify-start">
-                    Delete Account
                   </Button>
                 </CardContent>
               </Card>
