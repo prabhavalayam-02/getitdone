@@ -89,17 +89,26 @@ const AvailableTasksPage: React.FC = () => {
 
     try {
       await tasksAPI.acceptTask(taskId);
-      setTasks(prev => prev.filter(task => task._id !== taskId));
       toast({
-        title: "Task accepted",
+        title: "Task accepted! ✅",
         description: "You have successfully accepted this task. Check 'My Tasks' to manage it.",
       });
-    } catch (error) {
+      // Reload tasks to show updated statuses
+      await loadTasks();
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.msg || error?.message || "Failed to accept task";
+      const errorStatus = error?.response?.data?.currentStatus;
+      
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to accept task",
+        title: "Cannot Accept Task",
+        description: errorStatus 
+          ? `This task is currently ${errorStatus}. Please refresh the page.`
+          : errorMessage,
       });
+      
+      // Reload tasks to show current statuses
+      await loadTasks();
     }
   };
 

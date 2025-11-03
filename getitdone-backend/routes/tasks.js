@@ -82,9 +82,14 @@ router.post("/:id/accept", authMiddleware, async (req, res) => {
     if (!task) return res.status(404).json({ msg: "Task not found" });
 
     if (task.status !== "open") {
+      console.log(`Task ${task._id} cannot be accepted. Current status: ${task.status}`);
       return res
         .status(400)
-        .json({ msg: "Task already accepted or not available" });
+        .json({ 
+          msg: `Task is ${task.status}. Only open tasks can be accepted.`,
+          currentStatus: task.status,
+          canAccept: false
+        });
     }
 
     task.status = "pending-approval";

@@ -2,8 +2,13 @@ const nodemailer = require('nodemailer');
 
 // Create transporter (optional - allows server to start without email config)
 let transporter = null;
+let emailConfigError = null;
 
 try {
+  console.log('🔧 Initializing email service...');
+  console.log('EMAIL_USER present:', !!process.env.EMAIL_USER);
+  console.log('EMAIL_PASSWORD present:', !!process.env.EMAIL_PASSWORD);
+  
   if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
     transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -11,13 +16,33 @@ try {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD,
       },
+      // Add timeout and connection options
+      pool: false, // Disable pooling for better error handling
+      maxConnections: 1,
+      rateDelta: 20000,
+      rateLimit: 5,
     });
+    
     console.log('✅ Email service configured');
+    console.log('📧 Email User:', process.env.EMAIL_USER);
+    console.log('🔐 Email Password length:', process.env.EMAIL_PASSWORD?.length);
+    
+    // Test connection (don't await, just log results)
+    transporter.verify((error, success) => {
+      if (error) {
+        console.error('❌ Email service verification failed:', error.message);
+        emailConfigError = error.message;
+      } else {
+        console.log('✅ Email service verified and ready');
+      }
+    });
   } else {
     console.warn('⚠️  Email credentials not configured. Email notifications disabled.');
   }
 } catch (error) {
-  console.warn('⚠️  Failed to initialize email service:', error.message);
+  console.error('❌ Failed to initialize email service:', error.message);
+  console.error('Full error:', error);
+  emailConfigError = error.message;
 }
 
 /**
@@ -29,9 +54,10 @@ try {
 const sendTaskAcceptedEmail = async (task, helper, tasker) => {
   if (!transporter) {
     console.log('📧 Email notification skipped (email not configured)');
-    return;
+    return { success: false, reason: 'Email not configured' };
   }
   
+  console.log('📧 Sending task accepted email to:', tasker.email);
   try {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const approveUrl = `${frontendUrl}/user/approve-helper/${task._id}`;
@@ -83,10 +109,17 @@ const sendTaskAcceptedEmail = async (task, helper, tasker) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log('Task accepted email sent successfully');
+    console.log('✅ Task accepted email sent successfully to:', tasker.email);
+    return { success: true };
   } catch (error) {
-    console.error('Error sending task accepted email:', error);
-    throw error;
+    console.error('❌ Error sending task accepted email:', error.message);
+    console.error('Error details:', {
+      code: error.code,
+      command: error.command,
+      response: error.response
+    });
+    // Don't throw - let the request continue even if email fails
+    return { success: false, error: error.message };
   }
 };
 
