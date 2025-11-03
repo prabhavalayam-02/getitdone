@@ -1,73 +1,65 @@
-# Welcome to your Lovable project
+# GetItDone Frontend
 
-## Project info
+React-based frontend for the GetItDone task management platform.
 
-**URL**: https://lovable.dev/projects/debfca95-9e7b-4636-86ee-39127ff137ff
+## 🚀 Quick Start
 
-## How can I edit this code?
+```bash
+# Install dependencies
+npm install
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/debfca95-9e7b-4636-86ee-39127ff137ff) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The app will run on `http://localhost:8080`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🛠️ Technologies
 
-**Use GitHub Codespaces**
+- **React 18** with TypeScript
+- **Vite** - Fast build tool
+- **Tailwind CSS** - Utility-first CSS
+- **Shadcn/ui** - UI component library
+- **React Router v6** - Client-side routing
+- **Lucide React** - Icon library
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 📦 Available Scripts
 
-## What technologies are used for this project?
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
 
-This project is built with:
+## 🔧 Environment Variables
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Create a `.env` file:
 
-## How can I deploy this project?
+```env
+VITE_API_BASE_URL=http://localhost:5000
+VITE_APP_NAME=GetItDone
+VITE_APP_URL=http://localhost:8080
+```
 
-Simply open [Lovable](https://lovable.dev/projects/debfca95-9e7b-4636-86ee-39127ff137ff) and click on Share -> Publish.
+## 📁 Project Structure
 
-## Can I connect a custom domain to my Lovable project?
+```
+src/
+├── components/     # Reusable UI components
+├── pages/          # Page components
+├── lib/            # Utilities and API
+├── hooks/          # Custom React hooks
+└── main.tsx        # App entry point
+```
 
-Yes, you can!
+## 🚀 Deployment
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+This frontend is deployed on Vercel at [getitdone.amjad.biz](https://getitdone.amjad.biz)
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+For production deployment:
+1. Set environment variables in Vercel
+2. Connect GitHub repository
+3. Deploy automatically on push
+
+## 📄 License
+
+MIT
