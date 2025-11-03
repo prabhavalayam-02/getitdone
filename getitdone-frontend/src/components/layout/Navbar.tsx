@@ -29,7 +29,7 @@ const Navbar: React.FC<NavbarProps> = ({ role }) => {
       <nav className="border-b bg-background/95 backdrop-blur-sm sticky top-0 z-50 shadow-card">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-fast">
-            <img src="/lovable-uploads/08545713-0aec-48d1-91be-f641732e209d.png" alt="GetItDone" className="h-8 w-8" />
+            <img src="/lovable-uploads/getitdone.png" alt="GetItDone" className="h-8 w-8" />
             <span className="font-bold text-xl text-primary">GetItDone</span>
           </Link>
           
@@ -78,7 +78,7 @@ const Navbar: React.FC<NavbarProps> = ({ role }) => {
     <nav className="border-b bg-background/95 backdrop-blur-sm sticky top-0 z-50 shadow-card">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to={`/${role}`} className="flex items-center space-x-2 hover:opacity-80 transition-fast">
-          <img src="/lovable-uploads/08545713-0aec-48d1-91be-f641732e209d.png" alt="GetItDone" className="h-8 w-8" />
+          <img src="/lovable-uploads/getitdone.png" alt="GetItDone" className="h-8 w-8" />
           <span className="font-bold text-xl text-primary">GetItDone</span>
         </Link>
         

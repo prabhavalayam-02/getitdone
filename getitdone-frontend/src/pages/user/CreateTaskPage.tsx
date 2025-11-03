@@ -151,7 +151,7 @@ const CreateTaskPage: React.FC = () => {
                   <div>
                     <Label htmlFor="location" className="flex items-center">
                       <MapPin className="h-4 w-4 mr-2" />
-                      Location
+                      Location *
                     </Label>
                     <Input
                       id="location"
@@ -160,6 +160,7 @@ const CreateTaskPage: React.FC = () => {
                       value={formData.location}
                       onChange={(e) => handleInputChange('location', e.target.value)}
                       className="mt-1"
+                      required
                     />
                   </div>
                   
@@ -202,7 +203,7 @@ const CreateTaskPage: React.FC = () => {
                   <div>
                     <Label htmlFor="date" className="flex items-center">
                       <Calendar className="h-4 w-4 mr-2" />
-                      Preferred Date
+                      Preferred Date *
                     </Label>
                     <Input
                       id="date"
@@ -210,6 +211,7 @@ const CreateTaskPage: React.FC = () => {
                       value={formData.date}
                       onChange={(e) => handleInputChange('date', e.target.value)}
                       className="mt-1"
+                      required
                       min={new Date().toISOString().slice(0, 16)}
                     />
                   </div>

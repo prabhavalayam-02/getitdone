@@ -10,6 +10,7 @@ import FileUploader from '@/components/ui/FileUploader';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { User, Upload, Shield, RefreshCw, Save, AlertCircle } from 'lucide-react';
+import { API_BASE_URL } from '@/lib/config';
 
 const UserProfilePage: React.FC = () => {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ const UserProfilePage: React.FC = () => {
   const fetchUserData = async () => {
     try {
       const token = localStorage.getItem('jwt');
-      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -69,7 +70,7 @@ const UserProfilePage: React.FC = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('jwt');
-      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

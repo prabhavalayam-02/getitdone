@@ -143,7 +143,7 @@ const SignupPage: React.FC = () => {
                 </div>
                 
                 <div>
-                  <Label htmlFor="phone">Phone</Label>
+                  <Label htmlFor="phone">Phone *</Label>
                   <Input
                     id="phone"
                     type="tel"
@@ -151,6 +151,7 @@ const SignupPage: React.FC = () => {
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
                     className="mt-1"
+                    required
                   />
                 </div>
               </div>
@@ -169,7 +170,7 @@ const SignupPage: React.FC = () => {
               </div>
               
               <div>
-                <Label htmlFor="address">Address</Label>
+                <Label htmlFor="address">Address *</Label>
                 <Input
                   id="address"
                   type="text"
@@ -177,6 +178,7 @@ const SignupPage: React.FC = () => {
                   value={formData.address}
                   onChange={(e) => handleInputChange('address', e.target.value)}
                   className="mt-1"
+                  required
                 />
               </div>
               

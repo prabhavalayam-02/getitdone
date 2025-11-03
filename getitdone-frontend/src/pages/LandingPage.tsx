@@ -182,7 +182,7 @@ const LandingPage: React.FC = () => {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <img src="/lovable-uploads/08545713-0aec-48d1-91be-f641732e209d.png" alt="GetItDone" className="h-8 w-8" />
+                <img src="/lovable-uploads/getitdonefoot.png" alt="GetItDone" className="h-8 w-8" />
                 <span className="font-bold text-xl">GetItDone</span>
               </div>
               <p className="text-muted opacity-80">
