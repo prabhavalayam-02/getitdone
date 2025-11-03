@@ -266,90 +266,49 @@ const UserProfilePage: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Helper Status & Role Management */}
+            {/* Become a Helper / Role Management */}
             <Card className="animate-fade-in">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Shield className="h-5 w-5 mr-2" />
-                  Helper Status
+                  {userInfo.helperStatus === 'approved' ? 'Role Management' : 'Become a Helper'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div>
-                  <Label>Current Status</Label>
-                  <div className="mt-2">
-                    {getHelperStatusBadge()}
-                  </div>
-                </div>
-
-                {userInfo.helperStatus === 'pending' && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <div className="flex items-center">
-                      <AlertCircle className="h-5 w-5 text-yellow-600 mr-3" />
-                      <div>
-                        <h4 className="font-medium text-yellow-800">Application Under Review</h4>
-                        <p className="text-sm text-yellow-700">
-                          Your helper application is being reviewed. You'll receive an update within 1-2 business days.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {userInfo.helperStatus === 'approved' && (
+                
+                {/* If not applied yet - Show Become Helper section */}
+                {!userInfo.helperStatus && (
                   <div className="space-y-4">
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                      <div className="flex items-center">
-                        <Shield className="h-5 w-5 text-green-600 mr-3" />
-                        <div>
-                          <h4 className="font-medium text-green-800">Helper Approved!</h4>
-                          <p className="text-sm text-green-700">
-                            You can now accept tasks and earn money as a helper.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <Button onClick={handleRoleSwitch} variant="hero" className="w-full">
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Switch to Helper Dashboard
-                    </Button>
-                  </div>
-                )}
-
-                {userInfo.helperStatus === 'rejected' && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <div className="flex items-center">
-                      <AlertCircle className="h-5 w-5 text-red-600 mr-3" />
-                      <div>
-                        <h4 className="font-medium text-red-800">Application Rejected</h4>
-                        <p className="text-sm text-red-700">
-                          Your helper application was not approved. You can reapply by uploading new KYC documents.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {(!userInfo.helperStatus || userInfo.helperStatus === 'rejected') && (
-                  <div className="space-y-4">
-                    <div>
-                      <Label>Apply to Become a Helper</Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Upload your identity documents to apply for helper status and start earning money.
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h4 className="font-semibold text-blue-900 mb-2">Want to Earn Money?</h4>
+                      <p className="text-sm text-blue-800 mb-3">
+                        Become a helper and start accepting tasks! Upload your identity documents to get started.
                       </p>
+                      <ul className="text-sm text-blue-700 space-y-1">
+                        <li>✓ Work on your own schedule</li>
+                        <li>✓ Choose tasks you want to do</li>
+                        <li>✓ Earn money for completed tasks</li>
+                      </ul>
                     </div>
                     
-                    <FileUploader
-                      multiple={true}
-                      acceptedTypes={['image/*', '.pdf']}
-                      maxFiles={3}
-                      onFilesChange={setKycFiles}
-                    />
+                    <div>
+                      <Label>Upload KYC Documents *</Label>
+                      <p className="text-sm text-muted-foreground mt-1 mb-3">
+                        Upload 1-3 identity documents (Aadhar, PAN, Driver's License, etc.)
+                      </p>
+                      
+                      <FileUploader
+                        multiple={true}
+                        acceptedTypes={['image/*', '.pdf']}
+                        maxFiles={3}
+                        onFilesChange={setKycFiles}
+                      />
+                    </div>
                     
                     <Button
                       onClick={handleKYCUpload}
                       disabled={loading || kycFiles.length === 0}
+                      variant="hero"
                       className="w-full"
                     >
                       {loading ? (
@@ -357,7 +316,107 @@ const UserProfilePage: React.FC = () => {
                       ) : (
                         <Upload className="h-4 w-4 mr-2" />
                       )}
-                      {userInfo.helperStatus === 'rejected' ? 'Reapply as Helper' : 'Apply to Become Helper'}
+                      Submit Application
+                    </Button>
+                  </div>
+                )}
+
+                {/* If pending - Show waiting message */}
+                {userInfo.helperStatus === 'pending' && (
+                  <div className="space-y-4">
+                    <div className="text-center py-4">
+                      {getHelperStatusBadge()}
+                    </div>
+                    
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <div className="flex items-start">
+                        <AlertCircle className="h-5 w-5 text-yellow-600 mr-3 mt-0.5" />
+                        <div>
+                          <h4 className="font-semibold text-yellow-900 mb-1">Application Under Review</h4>
+                          <p className="text-sm text-yellow-800">
+                            Your KYC documents are being reviewed by our admin team. You'll receive an update within 1-2 business days.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* If approved - Show switch button */}
+                {userInfo.helperStatus === 'approved' && (
+                  <div className="space-y-4">
+                    <div className="text-center py-2">
+                      {getHelperStatusBadge()}
+                    </div>
+                    
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <div className="flex items-start">
+                        <Shield className="h-5 w-5 text-green-600 mr-3 mt-0.5" />
+                        <div>
+                          <h4 className="font-semibold text-green-900 mb-1">Helper Status Approved!</h4>
+                          <p className="text-sm text-green-800">
+                            You can now switch between Tasker and Helper modes anytime. Accept tasks and start earning!
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <Button onClick={handleRoleSwitch} variant="hero" size="lg" className="w-full">
+                      <RefreshCw className="h-5 w-5 mr-2" />
+                      Switch to Helper Mode
+                    </Button>
+                    
+                    <p className="text-xs text-center text-muted-foreground">
+                      You can switch back to Tasker mode anytime from the Helper dashboard
+                    </p>
+                  </div>
+                )}
+
+                {/* If rejected - Show reapply option */}
+                {userInfo.helperStatus === 'rejected' && (
+                  <div className="space-y-4">
+                    <div className="text-center py-2">
+                      {getHelperStatusBadge()}
+                    </div>
+                    
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                      <div className="flex items-start">
+                        <AlertCircle className="h-5 w-5 text-red-600 mr-3 mt-0.5" />
+                        <div>
+                          <h4 className="font-semibold text-red-900 mb-1">Application Not Approved</h4>
+                          <p className="text-sm text-red-800">
+                            Your helper application was not approved. Please upload clearer/valid KYC documents to reapply.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label>Upload New KYC Documents *</Label>
+                      <p className="text-sm text-muted-foreground mt-1 mb-3">
+                        Upload valid identity documents (Aadhar, PAN, Driver's License)
+                      </p>
+                      
+                      <FileUploader
+                        multiple={true}
+                        acceptedTypes={['image/*', '.pdf']}
+                        maxFiles={3}
+                        onFilesChange={setKycFiles}
+                      />
+                    </div>
+                    
+                    <Button
+                      onClick={handleKYCUpload}
+                      disabled={loading || kycFiles.length === 0}
+                      variant="hero"
+                      className="w-full"
+                    >
+                      {loading ? (
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Upload className="h-4 w-4 mr-2" />
+                      )}
+                      Reapply as Helper
                     </Button>
                   </div>
                 )}

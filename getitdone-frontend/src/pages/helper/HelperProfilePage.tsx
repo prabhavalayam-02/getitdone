@@ -489,19 +489,31 @@ const HelperProfilePage: React.FC = () => {
               </Card>
 
               {/* Role Switching */}
-              <Card className="animate-fade-in">
+              <Card className="animate-fade-in bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
                 <CardHeader>
-                  <CardTitle>Role Management</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <RefreshCw className="h-5 w-5 text-green-600" />
+                    Role Management
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    You can switch between helper and user modes to access different features.
-                  </p>
+                  <div className="bg-white/60 rounded-lg p-3 border border-green-100">
+                    <p className="text-sm text-foreground mb-2">
+                      <strong>Current Mode:</strong> Helper
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Switch to Tasker mode to create and manage your own tasks.
+                    </p>
+                  </div>
                   
-                  <Button onClick={handleRoleSwitch} variant="hero" className="w-full">
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Switch to User Mode
+                  <Button onClick={handleRoleSwitch} variant="hero" size="lg" className="w-full">
+                    <RefreshCw className="h-5 w-5 mr-2" />
+                    Switch to Tasker Mode
                   </Button>
+                  
+                  <p className="text-xs text-center text-muted-foreground">
+                    You can switch back to Helper mode anytime
+                  </p>
                 </CardContent>
               </Card>
 
