@@ -146,12 +146,12 @@ const LoginPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="bg-muted/50 p-3 rounded-lg text-xs">
+            {/* <div className="bg-muted/50 p-3 rounded-lg text-xs">
               <p className="font-medium mb-1">Demo Credentials:</p>
               <p>User: user@test.com / password</p>
               <p>Helper: helper@test.com / password</p>
               <p>Admin: admin@test.com / password</p>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
       </div>
