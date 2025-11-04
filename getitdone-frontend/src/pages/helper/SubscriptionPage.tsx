@@ -211,7 +211,7 @@ const SubscriptionPage: React.FC = () => {
                   <CardTitle className="text-2xl">Monthly Plan</CardTitle>
                   <Zap className="h-8 w-8 text-primary" />
                 </div>
-                <div className="flex items-baseline gap-2">
+                <div className="flex items-baseline">
                   <span className="text-4xl font-bold text-foreground">₹99</span>
                   <span className="text-muted-foreground">/month</span>
                 </div>
@@ -263,12 +263,12 @@ const SubscriptionPage: React.FC = () => {
                   <CardTitle className="text-2xl">Yearly Plan</CardTitle>
                   <Shield className="h-8 w-8 text-primary" />
                 </div>
-                <div className="flex items-baseline gap-2">
+                <div className="flex items-baseline">
                   <span className="text-4xl font-bold text-foreground">₹999</span>
                   <span className="text-muted-foreground">/year</span>
                 </div>
                 <p className="text-sm text-green-600 font-medium mt-2">
-                  Save ₹1,000 (17% off)
+                  Save ₹189 (16% off)
                 </p>
               </CardHeader>
               <CardContent className="space-y-6">
