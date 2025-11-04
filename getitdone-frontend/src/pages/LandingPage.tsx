@@ -214,9 +214,9 @@ const LandingPage: React.FC = () => {
               <h4 className="font-semibold mb-4">Support</h4>
               <ul className="space-y-2 text-sm opacity-80">
                 <li><a href="#" className="hover:opacity-100">Help Center</a></li>
-                <li><a href="#" className="hover:opacity-100">Contact Us</a></li>
-                <li><a href="#" className="hover:opacity-100">Privacy Policy</a></li>
-                <li><a href="#" className="hover:opacity-100">Terms of Service</a></li>
+                <li><a href="mailto:prabhavalayam@gmail.com" className="hover:opacity-100">Contact Us</a></li>
+                <li><Link to="/privacy-policy" className="hover:opacity-100">Privacy Policy</Link></li>
+                <li><Link to="/terms-and-conditions" className="hover:opacity-100">Terms of Service</Link></li>
               </ul>
             </div>
           </div>

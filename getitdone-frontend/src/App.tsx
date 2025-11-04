@@ -24,6 +24,8 @@ import RateTaskerPage from "./pages/helper/RateTaskerPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import HelperReviewsPage from "./pages/reviews/HelperReviewsPage";
 import TaskerReviewsPage from "./pages/reviews/TaskerReviewsPage";
+import TermsAndConditionsPage from "./pages/legal/TermsAndConditionsPage";
+import PrivacyPolicyPage from "./pages/legal/PrivacyPolicyPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -65,6 +67,10 @@ const App = () => (
           {/* Reviews Routes */}
           <Route path="/reviews/helper/:helperId" element={<HelperReviewsPage />} />
           <Route path="/reviews/tasker/:taskerId" element={<TaskerReviewsPage />} />
+          
+          {/* Legal Routes */}
+          <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           
           {/* Catch-all route */}
           <Route path="*" element={<NotFound />} />

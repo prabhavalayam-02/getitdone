@@ -41,13 +41,9 @@ router.post("/", authMiddleware, async (req, res) => {
  */
 router.post("/:id/accept", authMiddleware, async (req, res) => {
   try {
-    if (req.user.role !== "helper") {
-      return res.status(403).json({ msg: "Only helpers can accept tasks" });
-    }
-
-    // Check helper status
+    // Check if user has approved helper status (regardless of role)
     if (req.user.helperStatus !== "approved") {
-      return res.status(403).json({ msg: "Your account is not approved yet" });
+      return res.status(403).json({ msg: "Only approved helpers can accept tasks" });
     }
 
     // Get full helper details

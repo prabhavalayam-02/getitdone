@@ -113,7 +113,7 @@ const UserDashboard: React.FC = () => {
         {/* Welcome Section */}
         <div className="mb-8 animate-fade-in">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            Welcome back, {userName}!
+            Welcome, {userName}!
           </h1>
           <p className="text-muted-foreground">
             Manage your tasks and track their progress from your dashboard.
