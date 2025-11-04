@@ -237,8 +237,8 @@ const sendSubscriptionReminderEmail = async (helper) => {
             <h3 style="margin-top: 0;">Subscribe to Continue</h3>
             <p>To continue accepting and completing tasks, please subscribe to one of our plans:</p>
             <ul>
-              <li><strong>Monthly Plan:</strong> ₹499/month</li>
-              <li><strong>Yearly Plan:</strong> ₹4999/year (Save ₹1000!)</li>
+              <li><strong>Monthly Plan:</strong> ₹99/month</li>
+              <li><strong>Yearly Plan:</strong> ₹999/year (Save ₹189!)</li>
             </ul>
           </div>
           

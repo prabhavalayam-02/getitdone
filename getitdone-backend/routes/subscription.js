@@ -41,8 +41,8 @@ router.post("/create-order", authMiddleware, async (req, res) => {
 
     // Define subscription amounts in INR (in paise)
     const amounts = {
-      monthly: 49900, // ₹499
-      yearly: 499900, // ₹4999
+      monthly: 9900, // ₹99
+      yearly: 99900, // ₹999
     };
 
     if (!amounts[plan]) {
